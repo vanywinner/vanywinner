@@ -4,7 +4,7 @@
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
-  const href = (a) => a.link || (a.id ? "article.html?id=" + encodeURIComponent(a.id) : "#");
+  const href = (a) => a.link || (a.id ? "stories/" + encodeURIComponent(a.id) + ".html" : "#");
   function thumb(a) {
     return a.image
       ? `<img class="thumb" src="${esc(a.image)}" alt="" loading="lazy">`

@@ -78,7 +78,7 @@
         let image; const f = $("post-photo").files[0];
         if (f) { say("Uploading photo..."); image = `images/${id}.jpg`; await gh(image, { method: "PUT", body: JSON.stringify({ message: "Add photo", content: await shrink(f), branch: cfg.branch }) }); }
         const body = $("post-body").value.trim();
-        data.articles.unshift({ id, category: $("post-category").value, title, summary: $("post-summary").value.trim() || body.slice(0, 160), body, author: $("post-author").value.trim() || "Newsroom", time: when, image });
+        data.articles.unshift({ id, category: $("post-category").value, title, summary: $("post-summary").value.trim() || body.slice(0, 160), body, author: $("post-author").value.trim() || "Newsroom", time: when, date: new Date().toISOString(), image });
       }
       await save("Post: " + title);
       $("composer").reset(); $("photo-preview").hidden = true; syncType();
