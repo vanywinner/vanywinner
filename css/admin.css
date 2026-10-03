@@ -1,0 +1,28 @@
+.admin { max-width: 720px; margin: 0 auto; padding: 28px 5vw 70px; display: grid; gap: 22px; }
+.panel { background: #fff; border: 1px solid var(--color-line); border-radius: 18px; padding: 22px; }
+.panel__title { margin: 0 0 6px; font: 800 1.3rem var(--font-head); }
+.panel__hint { margin: 0 0 16px; color: #5C6B8C; font-size: .92rem; }
+.field { display: grid; gap: 6px; margin-bottom: 14px; font-weight: 600; font-size: .9rem; }
+.field-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; }
+input, select, textarea { width: 100%; padding: 11px 14px; border: 1.5px solid var(--color-line); border-radius: 12px; background: var(--color-page); font: 400 1rem var(--font-body); color: var(--color-ink); }
+textarea { resize: vertical; margin-bottom: 14px; }
+.btn { border: 0; border-radius: 999px; padding: 11px 28px; background: var(--color-cobalt); color: #fff; font: 600 1rem var(--font-body); cursor: pointer; }
+.btn:hover { background: var(--color-navy); }
+.btn:disabled { opacity: .6; cursor: wait; }
+.btn--ghost { background: var(--color-mist); color: var(--color-cobalt); padding: 6px 16px; font-size: .88rem; }
+.btn--ghost:hover { background: #fde8e8; color: #b42318; }
+.composer__top { display: flex; gap: 12px; align-items: center; margin-bottom: 14px; }
+.composer__avatar { border-radius: 12px; }
+.composer__title { font: 600 1.15rem var(--font-head); border-radius: 999px; }
+.type-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.pill { padding: 6px 16px; border-radius: 999px; background: var(--color-mist); color: var(--color-cobalt); font-weight: 600; cursor: pointer; }
+.pill input { display: none; }
+.pill:has(input:checked) { background: var(--color-cobalt); color: #fff; }
+.photo-btn { display: inline-block; margin-bottom: 14px; padding: 8px 18px; border-radius: 999px; border: 1.5px dashed var(--color-azure); color: var(--color-cobalt); font-weight: 600; cursor: pointer; }
+.photo-preview { max-height: 220px; border-radius: 12px; margin-bottom: 14px; }
+.composer__foot { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.status { margin: 0; font-size: .92rem; color: var(--color-cobalt); }
+.status--error { color: #b42318; }
+.post-list { margin: 0; padding: 0; list-style: none; }
+.post-list__item { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid var(--color-line); }
+.post-list__kind { color: #5C6B8C; font-size: .82rem; margin-right: 8px; }

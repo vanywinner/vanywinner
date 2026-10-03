@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Newsroom desk | Vanywinner</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+<header id="site-header" class="site-header">
+  <a class="brand" href="index.html"><img class="brand__logo" src="favicon.svg" alt="" width="40" height="40"><span class="brand__name">Vanywinner<small>Newsroom desk</small></span></a>
+  <button id="logout-btn" class="icon-btn" type="button" hidden>Log out</button>
+</header>
+<main id="admin-main" class="admin">
+  <form id="setup-form" class="panel">
+    <h2 class="panel__title">Connect to GitHub</h2>
+    <p class="panel__hint">Create a fine-grained token for this repo with Contents set to Read and write. It is saved only in this browser.</p>
+    <div class="field-row"><label class="field">GitHub username<input id="cfg-owner" value="vanywinner" required></label>
+    <label class="field">Repository<input id="cfg-repo" value="vanywinner" required></label>
+    <label class="field">Branch<input id="cfg-branch" value="main" required></label></div>
+    <label class="field">Access token<input id="cfg-token" type="password" autocomplete="off" required></label>
+    <button class="btn" type="submit">Save and connect</button>
+  </form>
+
+  <form id="composer" class="panel composer" hidden>
+    <div class="composer__top"><img class="composer__avatar" src="favicon.svg" alt="" width="46" height="46">
+      <input id="post-title" class="composer__title" placeholder="What is the headline?" required></div>
+    <div class="type-pills" role="radiogroup" aria-label="Post type">
+      <label class="pill"><input type="radio" name="post-type" value="story" checked>Story</label>
+      <label class="pill"><input type="radio" name="post-type" value="video">Video</label>
+      <label class="pill"><input type="radio" name="post-type" value="breaking">Breaking line</label>
+    </div>
+    <div data-for="story">
+      <textarea id="post-body" class="composer__body" rows="7" placeholder="Write the story. Leave a blank line between paragraphs."></textarea>
+      <textarea id="post-summary" rows="2" class="composer__summary" placeholder="Short summary shown on the home page"></textarea>
+      <div class="field-row"><label class="field">Category<select id="post-category"><option>News</option><option>Business</option><option>Sports</option><option>Opinion</option></select></label>
+      <label class="field">Author<input id="post-author" placeholder="Newsroom"></label></div>
+      <label class="photo-btn">Add photo<input id="post-photo" type="file" accept="image/*" hidden></label>
+      <img id="photo-preview" class="photo-preview" alt="" hidden>
+    </div>
+    <label class="field" data-for="video" hidden>YouTube link<input id="post-video-url" placeholder="https://www.youtube.com/watch?v=..."></label>
+    <div class="composer__foot"><p id="status" class="status" role="status"></p><button id="post-btn" class="btn" type="submit">Post</button></div>
+  </form>
+
+  <section id="posts-panel" class="panel" hidden>
+    <h2 class="panel__title">Published posts</h2>
+    <ul id="post-list" class="post-list"></ul>
+  </section>
+</main>
+<script src="js/admin.js"></script>
+</body>
+</html>
