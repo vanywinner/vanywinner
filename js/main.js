@@ -81,9 +81,12 @@
     $("breaking-bar").hidden = !breaking.length;
     $("videos").hidden = !videos.length;
     if (!articles.length) { $("top-stories").hidden = true; $("category-sections").innerHTML = '<p class="empty-note">No stories yet. Post the first one from the admin page.</p>'; return; }
-    let b = 0;
-    const showBreaking = () => { $("breaking-text").textContent = breaking[b++ % breaking.length]; };
-    if (breaking.length) { showBreaking(); if (breaking.length > 1) setInterval(showBreaking, 5000); }
+    if (breaking.length) {
+      const group = `<div class="breaking-bar__group">${breaking.map((t) => `<span class="breaking-bar__item">${esc(t)}</span>`).join("")}</div>`;
+      $("breaking-track").innerHTML = group + group;
+      $("breaking-track").style.animationDuration = Math.max(25, breaking.join(" ").length * 0.3) + "s";
+      document.body.classList.add("has-breaking");
+    }
     renderTop(); renderVideos(); renderCategories();
   }
   fetch("data/posts.json", { cache: "no-store" }).then((r) => r.json()).then(start)

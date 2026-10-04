@@ -35,7 +35,7 @@
     });
   }
   function renderList() {
-    const rows = [...data.articles.map((a) => ["articles", a.id, a.title, "Story"]), ...data.videos.map((v) => ["videos", v.id, v.title, "Video"])];
+    const rows = [...data.breaking.map((t, i) => ["breaking", String(i), t, "Breaking"]), ...data.articles.map((a) => ["articles", a.id, a.title, "Story"]), ...data.videos.map((v) => ["videos", v.id, v.title, "Video"])];
     $("post-list").innerHTML = rows.map(([k, id, t, label]) =>
       `<li class="post-list__item"><span><span class="post-list__kind">${label}</span>${esc(t)}</span><button class="btn btn--ghost" type="button" data-kind="${k}" data-id="${esc(id)}">Delete</button></li>`).join("") || "<li>No posts yet.</li>";
   }
@@ -69,7 +69,7 @@
     try {
       await load();
       const when = new Date().toLocaleString("en-KE", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }), id = String(Date.now());
-      if (type === "breaking") { data.breaking = [title, ...data.breaking].slice(0, 5); }
+      if (type === "breaking") { data.breaking = [title, ...data.breaking].slice(0, 8); }
       else if (type === "video") {
         const yt = ytId($("post-video-url").value);
         if (!yt) throw new Error("Paste a valid YouTube link.");
@@ -89,7 +89,7 @@
 
   $("post-list").addEventListener("click", async (e) => {
     const b = e.target.closest("button[data-id]"); if (!b || !confirm("Delete this post?")) return;
-    try { await load(); data[b.dataset.kind] = data[b.dataset.kind].filter((x) => x.id !== b.dataset.id); await save("Delete post"); say("Deleted."); }
+    try { await load(); if (b.dataset.kind === "breaking") data.breaking.splice(Number(b.dataset.id), 1); else data[b.dataset.kind] = data[b.dataset.kind].filter((x) => x.id !== b.dataset.id); await save("Delete post"); say("Deleted."); }
     catch (err) { say(err.message, true); }
   });
 
