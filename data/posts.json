@@ -1,9 +1,7 @@
 {
   "breaking": [
     "BREAKING: Opposition leaders vow to field one presidential candidate against Ruto at Karua family burial",
-    "ODM opens \"Mwezi wa Baba\"",
-    "Replace this line with your latest breaking headline",
-    "Add up to five headlines here and they rotate automatically"
+    "ODM opens \"Mwezi wa Baba\""
   ],
   "articles": [
     {
@@ -56,15 +54,6 @@
       "author": "Newsroom",
       "time": "3 Oct, 9:56",
       "image": "images/1791010564159.jpg"
-    },
-    {
-      "category": "News",
-      "title": "Your lead story headline goes here and can run across two lines",
-      "summary": "A one or two sentence summary tells readers why this story matters to them.",
-      "author": "Newsroom",
-      "time": "10 min ago",
-      "id": "s1",
-      "body": "Replace this placeholder in the admin page. Write the full story here."
     },
     {
       "category": "News",
