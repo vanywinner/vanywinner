@@ -13,6 +13,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      - run: npm install sharp --no-save
       - run: node scripts/build.js
       - name: Commit generated files
         run: |

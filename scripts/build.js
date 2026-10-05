@@ -22,6 +22,47 @@ function imageSize(file) {
   } catch (e) {}
   return null;
 }
+
+/* ---------- speed: small WebP thumbnails for cards (needs the optional "sharp" package) ---------- */
+let sharp = null;
+try { sharp = require("sharp"); } catch (e) { console.log("sharp not installed: skipping thumbnails (pages still work, using original images)"); }
+async function makeThumbs() {
+  if (!sharp) return;
+  fs.mkdirSync("images/thumbs", { recursive: true });
+  for (const a of data.articles) {
+    if (!a.image || /^(https?:)?\/\//.test(a.image) || !fs.existsSync(a.image)) continue;
+    const out = a.image.replace(/^images\//, "images/thumbs/").replace(/\.[a-z0-9]+$/i, ".webp");
+    if (fs.existsSync(out)) continue;
+    await sharp(a.image).rotate().resize({ width: 560, withoutEnlargement: true }).webp({ quality: 72 }).toFile(out);
+  }
+}
+
+/* ---------- speed: put the top stories straight into index.html so phones do not wait for JavaScript ---------- */
+const hrefOf = (a) => a.link || (a.id ? "stories/" + encodeURIComponent(a.id) + ".html" : "#");
+const thumbSrc = (img) => /^(https?:)?\/\//.test(img) ? img : img.replace(/^images\//, "images/thumbs/").replace(/\.[a-z0-9]+$/i, ".webp");
+function thumbHtml(a) {
+  if (!a.image) return `<div class="thumb thumb--${esc(a.category.toLowerCase())}"></div>`;
+  const hasThumb = sharp && !/^(https?:)?\/\//.test(a.image);
+  return `<img class="thumb" src="${esc(hasThumb ? thumbSrc(a.image) : a.image)}" onerror="this.onerror=null;this.src='${esc(a.image)}'" alt="" loading="lazy" decoding="async">`;
+}
+function prerenderHome() {
+  if (!data.articles.length || !fs.existsSync("index.html")) return;
+  const [lead, ...rest] = data.articles;
+  const leadHtml = `<a class="lead-story__link" href="${esc(hrefOf(lead))}">
+      <span class="chip chip--light">${esc(lead.category)}</span>
+      <h1 class="lead-story__title">${esc(lead.title)}</h1>
+      <p class="lead-story__summary">${esc(lead.summary)}</p>
+      <p class="lead-story__meta">By ${esc(lead.author)}, ${esc(lead.time)}</p></a>`;
+  const sideHtml = rest.slice(0, 3).map((a) => `<article class="side-story"><a class="side-story__link" href="${esc(hrefOf(a))}">
+      ${thumbHtml(a)}<div><span class="chip">${esc(a.category)}</span>
+      <h3 class="side-story__title">${esc(a.title)}</h3>
+      <p class="story-card__meta">By ${esc(a.author)}, ${esc(a.time)}</p></div></a></article>`).join("");
+  const latestHtml = data.articles.slice(0, 6).map((a) => `<li class="trending__item"><a class="trending__link" href="${esc(hrefOf(a))}">${esc(a.title)}</a></li>`).join("");
+  let html = fs.readFileSync("index.html", "utf8");
+  const put = (tag, content) => { html = html.replace(new RegExp(`<!--${tag}-->[\\s\\S]*?<!--/${tag}-->`), () => `<!--${tag}-->${content}<!--/${tag}-->`); };
+  put("lead", leadHtml); put("side", sideHtml); put("latest", latestHtml);
+  fs.writeFileSync("index.html", html);
+}
 const today = new Date().toISOString().slice(0, 10);
 
 fs.rmSync("stories", { recursive: true, force: true });
@@ -56,8 +97,9 @@ for (const a of data.articles) {
 <meta property="og:image" content="${img}">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/style.css?v=3">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap"></noscript>
+<link rel="stylesheet" href="../css/style.css?v=4">
 <script type="application/ld+json">${ld}</script>
 </head>
 <body>
@@ -87,4 +129,4 @@ fs.writeFileSync("sitemap.xml", `<?xml version="1.0" encoding="UTF-8"?>
 ${urls.map(([u, d]) => `  <url><loc>${u}</loc><lastmod>${d}</lastmod></url>`).join("\n")}
 </urlset>
 `);
-console.log(`Built ${data.articles.length} story pages and sitemap.xml`);
+makeThumbs().then(() => { prerenderHome(); console.log(`Built ${data.articles.length} story pages, sitemap.xml and the home page top stories`); });

@@ -2,7 +2,7 @@
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const box = document.getElementById("story-page");
   const id = new URLSearchParams(location.search).get("id");
-  fetch("data/posts.json", { cache: "no-store" }).then((r) => r.json()).then((d) => {
+  fetch("data/posts.json", { cache: "no-cache" }).then((r) => r.json()).then((d) => {
     const a = d.articles.find((x) => x.id === id);
     if (!a) { box.innerHTML = '<p class="empty-note">Story not found.</p><a class="story-page__back" href="index.html">Back to home</a>'; return; }
     document.title = a.title + " | Vanywinner News";

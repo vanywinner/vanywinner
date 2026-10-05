@@ -5,9 +5,11 @@
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
   const href = (a) => a.link || (a.id ? "stories/" + encodeURIComponent(a.id) + ".html" : "#");
+  /* cards use a small WebP copy (images/thumbs/); falls back to the original if it does not exist yet */
+  function thumbSrc(img) { return /^(https?:)?\/\//.test(img) ? img : img.replace(/^images\//, "images/thumbs/").replace(/\.[a-z0-9]+$/i, ".webp"); }
   function thumb(a) {
     return a.image
-      ? `<img class="thumb" src="${esc(a.image)}" alt="" loading="lazy">`
+      ? `<img class="thumb" src="${esc(thumbSrc(a.image))}" onerror="this.onerror=null;this.src='${esc(a.image)}'" alt="" loading="lazy" decoding="async">`
       : `<div class="thumb thumb--${a.category.toLowerCase()}"></div>`;
   }
   function storyCard(a) {
@@ -39,7 +41,7 @@
   function renderVideos() {
     $("video-grid").innerHTML = videos.map((v, i) =>
       `<button class="video-card" type="button" data-video-index="${i}">
-        <span class="video-card__thumb"${v.youtubeId ? ` style="background-image:url(https://img.youtube.com/vi/${esc(v.youtubeId)}/hqdefault.jpg)"` : ""}><span class="video-card__play" aria-hidden="true"></span>${v.length ? `<span class="video-card__length">${esc(v.length)}</span>` : ""}</span>
+        <span class="video-card__thumb">${v.youtubeId ? `<img class="video-card__img" src="https://i.ytimg.com/vi/${esc(v.youtubeId)}/mqdefault.jpg" alt="" width="320" height="180" loading="lazy" decoding="async">` : ""}<span class="video-card__play" aria-hidden="true"></span>${v.length ? `<span class="video-card__length">${esc(v.length)}</span>` : ""}</span>
         <span class="video-card__title">${esc(v.title)}</span></button>`).join("");
   }
 
@@ -64,11 +66,26 @@
     $("videos").hidden = on;
   }
 
+  /* open connections to YouTube before the click, so the player starts sooner */
+  let warmed = false;
+  function warmUp() {
+    if (warmed) return; warmed = true;
+    ["https://www.youtube-nocookie.com", "https://i.ytimg.com", "https://www.google.com"].forEach((u) => {
+      const l = document.createElement("link"); l.rel = "preconnect"; l.href = u; if (u.includes("youtube")) l.crossOrigin = ""; document.head.appendChild(l);
+    });
+  }
+
   function openVideo(i) {
     const v = videos[i];
-    $("video-player").innerHTML = v.youtubeId
-      ? `<iframe src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(v.youtubeId)}?autoplay=1" title="${esc(v.title)}" allow="autoplay; encrypted-media; fullscreen" allowfullscreen></iframe>`
-      : `<p class="modal__empty">This video has no YouTube ID yet. Add one in js/data.js.</p>`;
+    const box = $("video-player");
+    if (!v.youtubeId) { box.innerHTML = `<p class="modal__empty">This video has no YouTube ID yet. Add one in js/data.js.</p>`; $("video-modal").hidden = false; return; }
+    warmUp();
+    const id = encodeURIComponent(v.youtubeId);
+    box.innerHTML = `<div class="modal__loading" id="video-loading"><span class="modal__spinner" aria-hidden="true"></span>
+        <span>Loading video...</span>
+        <a href="https://www.youtube.com/watch?v=${id}" target="_blank" rel="noopener noreferrer">Taking long? Watch on YouTube</a></div>
+      <iframe src="https://www.youtube-nocookie.com/embed/${id}?autoplay=1&playsinline=1&rel=0&modestbranding=1" title="${esc(v.title)}" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
+    box.querySelector("iframe").addEventListener("load", () => { const l = $("video-loading"); if (l) l.remove(); });
     $("video-modal").hidden = false;
   }
   function closeVideo() { $("video-modal").hidden = true; $("video-player").innerHTML = ""; }
@@ -90,13 +107,17 @@
     }
     renderTop(); renderVideos(); renderCategories();
   }
-  fetch("data/posts.json", { cache: "no-store" }).then((r) => r.json()).then(start)
+  fetch("data/posts.json").then((r) => r.json()).then(start)
     .catch(() => { $("breaking-bar").hidden = true; document.body.classList.remove("has-breaking"); $("category-sections").innerHTML = '<p class="empty-note">Stories could not load. If you opened this file directly, run a local server or view the live site.</p>'; });
 
   $("video-grid").addEventListener("click", (e) => {
     const btn = e.target.closest("[data-video-index]");
     if (btn) openVideo(Number(btn.dataset.videoIndex));
   });
+  ["pointerover", "touchstart", "focusin"].forEach((ev) => $("video-grid").addEventListener(ev, warmUp, { once: true, passive: true }));
+  if ("IntersectionObserver" in window) {
+    new IntersectionObserver((en, ob) => { if (en.some((x) => x.isIntersecting)) { warmUp(); ob.disconnect(); } }, { rootMargin: "400px" }).observe($("videos"));
+  }
   $("video-close").addEventListener("click", closeVideo);
   $("video-modal").addEventListener("click", (e) => { if (e.target.id === "video-modal") closeVideo(); });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeVideo(); });
