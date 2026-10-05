@@ -57,7 +57,7 @@ for (const a of data.articles) {
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="../css/style.css?v=3">
 <script type="application/ld+json">${ld}</script>
 </head>
 <body>
@@ -71,7 +71,12 @@ for (const a of data.articles) {
   ${a.image ? `<img class="story-page__image" src="../${esc(a.image)}" alt="${esc(a.title)}"${dimAttrs} decoding="async">` : ""}
   <div class="story-page__body">${paras}</div>
 </main>
-<footer id="site-footer" class="site-footer"><p class="site-footer__brand">Vanywinner News</p><p class="site-footer__note"><a href="../index.html#contact">Contact us</a></p><p class="site-footer__dev">Developed by <a href="https://wa.me/254715672799" target="_blank" rel="noopener noreferrer">Vanywinner Enterprises</a></p></footer>
+<footer id="site-footer" class="site-footer">
+  <div class="site-footer__inner">
+    <p class="site-footer__copy">&copy; <span id="footer-year">${new Date().getFullYear()}</span> Vanywinner News &middot; Nairobi, Kenya &middot; vanywinner.co.ke</p>
+    <p class="site-footer__dev">Developed by <a href="https://wa.me/254715672799" target="_blank" rel="noopener noreferrer">Vanywinner Enterprises</a></p>
+  </div>
+</footer>
 </body>
 </html>`);
   urls.push([url, (a.date || today).slice(0, 10)]);

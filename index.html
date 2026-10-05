@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/style.css?v=3">
 </head>
 <body class="has-breaking">
 <div id="breaking-bar" class="breaking-bar" role="region" aria-label="Breaking news">
@@ -70,7 +70,7 @@
       <label class="contact__field">Your name<input name="name" type="text" autocomplete="name" maxlength="80" required></label>
       <label class="contact__field">Your email<input name="email" type="email" autocomplete="email" maxlength="120" required></label>
       <label class="contact__field contact__field--wide">Message<textarea name="message" rows="5" maxlength="2000" required></textarea></label>
-      <input class="contact__trap" type="text" name="_honey" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <input class="contact__trap" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0" type="text" name="_honey" tabindex="-1" autocomplete="off" aria-hidden="true">
       <input type="hidden" name="_subject" value="New message from vanywinner.co.ke">
       <input type="hidden" name="_template" value="table">
       <button class="contact__btn" type="submit">Send message</button>
@@ -87,12 +87,13 @@
 </div>
 
 <footer id="site-footer" class="site-footer">
-  <p class="site-footer__brand">Vanywinner News</p>
-  <p class="site-footer__note">Nairobi, Kenya. &copy; <span id="footer-year"></span> vanywinner.co.ke</p>
-  <p class="site-footer__dev">Developed by <a href="https://wa.me/254715672799" target="_blank" rel="noopener noreferrer">Vanywinner Enterprises</a></p>
+  <div class="site-footer__inner">
+    <p class="site-footer__copy">&copy; <span id="footer-year">2026</span> Vanywinner News &middot; Nairobi, Kenya &middot; vanywinner.co.ke</p>
+    <p class="site-footer__dev">Developed by <a href="https://wa.me/254715672799" target="_blank" rel="noopener noreferrer">Vanywinner Enterprises</a></p>
+  </div>
 </footer>
 
-<script src="js/main.js"></script>
-<script src="js/contact.js" defer></script>
+<script src="js/main.js?v=3"></script>
+<script src="js/contact.js?v=3" defer></script>
 </body>
 </html>

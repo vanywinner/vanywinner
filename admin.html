@@ -7,8 +7,8 @@
 <title>Newsroom desk | Vanywinner</title>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css">
-<link rel="stylesheet" href="css/admin.css">
+<link rel="stylesheet" href="css/style.css?v=3">
+<link rel="stylesheet" href="css/admin.css?v=3">
 </head>
 <body>
 <header id="site-header" class="site-header">
@@ -51,7 +51,13 @@
     <ul id="post-list" class="post-list"></ul>
   </section>
 </main>
-<footer id="site-footer" class="site-footer"><p class="site-footer__brand">Vanywinner News</p><p class="site-footer__dev">Developed by <a href="https://wa.me/254715672799" target="_blank" rel="noopener noreferrer">Vanywinner Enterprises</a></p></footer>
+<footer id="site-footer" class="site-footer">
+  <div class="site-footer__inner">
+    <p class="site-footer__copy">&copy; <span id="footer-year">2026</span> Vanywinner News &middot; Nairobi, Kenya &middot; vanywinner.co.ke</p>
+    <p class="site-footer__dev">Developed by <a href="https://wa.me/254715672799" target="_blank" rel="noopener noreferrer">Vanywinner Enterprises</a></p>
+  </div>
+</footer>
+<script>document.getElementById("footer-year").textContent=new Date().getFullYear();</script>
 <script src="js/admin.js"></script>
 </body>
 </html>
