@@ -79,6 +79,7 @@
   function start(data) {
     ({ breaking, articles, videos } = data);
     $("breaking-bar").hidden = !breaking.length;
+    if (!breaking.length) document.body.classList.remove("has-breaking");
     $("videos").hidden = !videos.length;
     if (!articles.length) { $("top-stories").hidden = true; $("category-sections").innerHTML = '<p class="empty-note">No stories yet. Post the first one from the admin page.</p>'; return; }
     if (breaking.length) {
@@ -90,7 +91,7 @@
     renderTop(); renderVideos(); renderCategories();
   }
   fetch("data/posts.json", { cache: "no-store" }).then((r) => r.json()).then(start)
-    .catch(() => { $("category-sections").innerHTML = '<p class="empty-note">Stories could not load. If you opened this file directly, run a local server or view the live site.</p>'; });
+    .catch(() => { $("breaking-bar").hidden = true; document.body.classList.remove("has-breaking"); $("category-sections").innerHTML = '<p class="empty-note">Stories could not load. If you opened this file directly, run a local server or view the live site.</p>'; });
 
   $("video-grid").addEventListener("click", (e) => {
     const btn = e.target.closest("[data-video-index]");

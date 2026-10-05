@@ -4,6 +4,24 @@ const fs = require("fs");
 const SITE = "https://vanywinner.co.ke";
 const data = JSON.parse(fs.readFileSync("data/posts.json", "utf8"));
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+/* Reads width/height from a JPEG or PNG so story images can reserve their space (prevents layout shift). */
+function imageSize(file) {
+  try {
+    const b = fs.readFileSync(file);
+    if (b[0] === 0x89 && b[1] === 0x50) return { w: b.readUInt32BE(16), h: b.readUInt32BE(20) };
+    if (b[0] === 0xff && b[1] === 0xd8) {
+      let i = 2;
+      while (i < b.length) {
+        if (b[i] !== 0xff) { i++; continue; }
+        const m = b[i + 1];
+        if (m >= 0xc0 && m <= 0xcf && m !== 0xc4 && m !== 0xc8 && m !== 0xcc) return { h: b.readUInt16BE(i + 5), w: b.readUInt16BE(i + 7) };
+        i += 2 + b.readUInt16BE(i + 2);
+      }
+    }
+  } catch (e) {}
+  return null;
+}
 const today = new Date().toISOString().slice(0, 10);
 
 fs.rmSync("stories", { recursive: true, force: true });
@@ -14,6 +32,8 @@ for (const a of data.articles) {
   const url = `${SITE}/stories/${a.id}.html`;
   const desc = esc((a.summary || a.body || "").slice(0, 160));
   const img = a.image ? `${SITE}/${a.image}` : `${SITE}/favicon.svg`;
+  const dim = a.image && !/^https?:/.test(a.image) ? imageSize(a.image) : null;
+  const dimAttrs = dim ? ` width="${dim.w}" height="${dim.h}"` : "";
   const paras = (a.body || a.summary || "").split(/\n\s*\n/).map((p) => `<p>${esc(p)}</p>`).join("");
   const ld = JSON.stringify({
     "@context": "https://schema.org", "@type": "NewsArticle", headline: a.title, datePublished: a.date,
@@ -48,10 +68,10 @@ for (const a of data.articles) {
   <a class="story-page__back" href="../index.html">Back to home</a>
   <h1 class="story-page__title">${esc(a.title)}</h1><span class="chip">${esc(a.category)}</span>
   <p class="story-page__meta">By ${esc(a.author)}, ${esc(a.time)}</p>
-  ${a.image ? `<img class="story-page__image" src="../${esc(a.image)}" alt="${esc(a.title)}">` : ""}
+  ${a.image ? `<img class="story-page__image" src="../${esc(a.image)}" alt="${esc(a.title)}"${dimAttrs} decoding="async">` : ""}
   <div class="story-page__body">${paras}</div>
 </main>
-<footer id="site-footer" class="site-footer"><p class="site-footer__brand">Vanywinner News</p></footer>
+<footer id="site-footer" class="site-footer"><p class="site-footer__brand">Vanywinner News</p><p class="site-footer__note"><a href="../index.html#contact">Contact us</a></p><p class="site-footer__dev">Developed by <a href="https://wa.me/254715672799" target="_blank" rel="noopener noreferrer">Vanywinner Enterprises</a></p></footer>
 </body>
 </html>`);
   urls.push([url, (a.date || today).slice(0, 10)]);

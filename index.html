@@ -17,8 +17,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
-<div id="breaking-bar" class="breaking-bar" role="region" aria-label="Breaking news" hidden>
+<body class="has-breaking">
+<div id="breaking-bar" class="breaking-bar" role="region" aria-label="Breaking news">
   <span class="breaking-bar__label"><i class="breaking-bar__dot"></i>Breaking News</span>
   <div class="breaking-bar__window"><div id="breaking-track" class="breaking-bar__track"></div></div>
   <time id="today-date" class="breaking-bar__date"></time>
@@ -37,6 +37,7 @@
     <a class="main-nav__link" href="#opinion">Opinion</a>
     <a class="main-nav__link" href="#videos">Videos</a>
     <a class="main-nav__link" href="#videos">Live TV</a>
+    <a class="main-nav__link" href="#contact">Contact</a>
   </nav>
   <button id="search-toggle" class="icon-btn" type="button" aria-label="Search stories">Search</button>
   <button id="menu-toggle" class="icon-btn icon-btn--menu" type="button" aria-label="Open menu" aria-expanded="false">Menu</button>
@@ -62,6 +63,20 @@
   </section>
 
   <div id="category-sections"></div>
+  <section id="contact" class="contact" aria-labelledby="contact-title">
+    <h2 id="contact-title" class="section-title">Contact us</h2>
+    <p class="contact__intro">Have a tip, a story or a question? Send us a message and the newsroom will reply by email.</p>
+    <form id="contact-form" class="contact__form" action="https://formsubmit.co/vanywinner@gmail.com" method="POST">
+      <label class="contact__field">Your name<input name="name" type="text" autocomplete="name" maxlength="80" required></label>
+      <label class="contact__field">Your email<input name="email" type="email" autocomplete="email" maxlength="120" required></label>
+      <label class="contact__field contact__field--wide">Message<textarea name="message" rows="5" maxlength="2000" required></textarea></label>
+      <input class="contact__trap" type="text" name="_honey" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <input type="hidden" name="_subject" value="New message from vanywinner.co.ke">
+      <input type="hidden" name="_template" value="table">
+      <button class="contact__btn" type="submit">Send message</button>
+      <p id="contact-status" class="contact__status" role="status" aria-live="polite"></p>
+    </form>
+  </section>
 </main>
 
 <div id="video-modal" class="modal" hidden>
@@ -74,8 +89,10 @@
 <footer id="site-footer" class="site-footer">
   <p class="site-footer__brand">Vanywinner News</p>
   <p class="site-footer__note">Nairobi, Kenya. &copy; <span id="footer-year"></span> vanywinner.co.ke</p>
+  <p class="site-footer__dev">Developed by <a href="https://wa.me/254715672799" target="_blank" rel="noopener noreferrer">Vanywinner Enterprises</a></p>
 </footer>
 
 <script src="js/main.js"></script>
+<script src="js/contact.js" defer></script>
 </body>
 </html>
