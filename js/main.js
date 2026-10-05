@@ -25,17 +25,77 @@
       <p class="story-card__meta">By ${esc(a.author)}, ${esc(a.time)}</p></div></a></article>`;
   }
 
+  /* ---------- hero slider (main stories) ---------- */
+  const HERO_MAX = 5, HERO_DELAY = 5000;
+  const heroSrc = (img) => /^(https?:)?\/\//.test(img) ? img : img.replace(/^images\//, "images/hero/").replace(/\.[a-z0-9]+$/i, ".webp");
+  const pickFeatured = (list) => { const withImg = list.filter((a) => a.image); return (withImg.length ? withImg : list).slice(0, HERO_MAX); };
+  function heroSlide(a, i, n) {
+    const first = i === 0;
+    const img = a.image ? `<img class="hero__img" ${first ? `src="${esc(heroSrc(a.image))}" fetchpriority="high"` : `data-src="${esc(heroSrc(a.image))}"`} data-orig="${esc(a.image)}" onerror="this.onerror=null;this.src=this.dataset.orig" alt="" decoding="async">` : "";
+    const tag = first ? "h1" : "h2";
+    return `<div class="hero__slide${first ? " is-active" : ""}" role="group" aria-roledescription="slide" aria-label="${i + 1} of ${n}"${first ? "" : " inert"}>${img}
+      <a class="hero__link" href="${esc(href(a))}"><span class="chip chip--light">${esc(a.category)}</span>
+      <${tag} class="hero__title">${esc(a.title)}</${tag}>
+      <p class="hero__meta">By ${esc(a.author)}, ${esc(a.time)}</p></a></div>`;
+  }
+  function heroHtml(list) {
+    const n = list.length;
+    const chev = (d) => `<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="${d}" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+    const nav = n > 1 ? `<button class="hero__nav hero__nav--prev" type="button" aria-label="Previous story">${chev("M15 5l-7 7 7 7")}</button>
+      <button class="hero__nav hero__nav--next" type="button" aria-label="Next story">${chev("M9 5l7 7-7 7")}</button>
+      <div class="hero__dots">${list.map((_, i) => `<button class="hero__dot${i === 0 ? " is-active" : ""}" type="button" aria-label="Go to story ${i + 1}"></button>`).join("")}</div>` : "";
+    return `<div class="hero" role="region" aria-roledescription="carousel" aria-label="Main stories">${list.map((a, i) => heroSlide(a, i, n)).join("")}${nav}</div>`;
+  }
+
+  /* slider behaviour: changes story every few seconds, pauses on hover/focus/touch/off-screen, swipe on phones */
+  function initHero() {
+    const hero = document.querySelector("#lead-story .hero");
+    if (!hero || hero.dataset.ready) return;
+    hero.dataset.ready = "1";
+    const slides = [...hero.querySelectorAll(".hero__slide")];
+    const dots = [...hero.querySelectorAll(".hero__dot")];
+    if (slides.length < 2) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let cur = 0, timer = null, paused = false, visible = true, started = false, x0 = null;
+    const load = (i) => { const im = slides[i].querySelector("img[data-src]"); if (im) { im.src = im.dataset.src; im.removeAttribute("data-src"); } };
+    const show = (i) => {
+      cur = (i + slides.length) % slides.length;
+      load(cur); load((cur + 1) % slides.length);
+      slides.forEach((s, k) => { const on = k === cur; s.classList.toggle("is-active", on); if (on) s.removeAttribute("inert"); else s.setAttribute("inert", ""); });
+      dots.forEach((d, k) => { d.classList.toggle("is-active", k === cur); d.setAttribute("aria-current", k === cur ? "true" : "false"); });
+    };
+    const stop = () => { clearInterval(timer); timer = null; };
+    const play = () => { stop(); if (!started || paused || !visible || document.hidden || reduce.matches) return; timer = setInterval(() => show(cur + 1), HERO_DELAY); };
+    const go = (i) => { show(i); play(); };
+    hero.querySelector(".hero__nav--prev").addEventListener("click", () => go(cur - 1));
+    hero.querySelector(".hero__nav--next").addEventListener("click", () => go(cur + 1));
+    dots.forEach((d, k) => d.addEventListener("click", () => go(k)));
+    hero.addEventListener("mouseenter", () => { paused = true; stop(); });
+    hero.addEventListener("mouseleave", () => { paused = false; play(); });
+    hero.addEventListener("focusin", () => { paused = true; stop(); });
+    hero.addEventListener("focusout", () => { paused = false; play(); });
+    hero.addEventListener("touchstart", (e) => { x0 = e.touches[0].clientX; }, { passive: true });
+    hero.addEventListener("touchend", (e) => {
+      if (x0 === null) return;
+      const dx = e.changedTouches[0].clientX - x0; x0 = null;
+      if (Math.abs(dx) > 40) go(cur + (dx < 0 ? 1 : -1));
+    }, { passive: true });
+    document.addEventListener("visibilitychange", play);
+    if ("IntersectionObserver" in window) new IntersectionObserver((en) => { visible = en[0].isIntersecting; play(); }, { threshold: 0.3 }).observe(hero);
+    /* wait until the page has finished loading, so the slider never competes with the first paint */
+    const begin = () => setTimeout(() => { started = true; load(1); play(); }, 1500);
+    if (document.readyState === "complete") begin(); else window.addEventListener("load", begin);
+  }
+
   function renderTop() {
-    const [lead, ...rest] = articles;
-    $("lead-story").innerHTML = `<a class="lead-story__link" href="${esc(href(lead))}">
-      <span class="chip chip--light">${esc(lead.category)}</span>
-      <h1 class="lead-story__title">${esc(lead.title)}</h1>
-      <p class="lead-story__summary">${esc(lead.summary)}</p>
-      <p class="lead-story__meta">By ${esc(lead.author)}, ${esc(lead.time)}</p></a>`;
-    $("side-stories").innerHTML = rest.slice(0, 3).map(sideStory).join("");
+    const featured = pickFeatured(articles);
+    if (!$("lead-story").querySelector(".hero")) $("lead-story").innerHTML = heroHtml(featured);
+    const side = articles.filter((a) => !featured.includes(a)).concat(featured.slice(1)).slice(0, 3);
+    $("side-stories").innerHTML = side.map(sideStory).join("");
     const top = articles.slice(0, 6);
     $("trending-list").innerHTML = top.map((a) =>
       `<li class="trending__item"><a class="trending__link" href="${esc(href(a))}">${esc(a.title)}</a></li>`).join("");
+    initHero();
   }
 
   function renderVideos() {
@@ -91,6 +151,7 @@
   function closeVideo() { $("video-modal").hidden = true; $("video-player").innerHTML = ""; }
 
   /* init */
+  initHero(); /* the slider is already in the page (built ahead of time), so it can start before posts.json arrives */
   $("today-date").textContent = new Date().toLocaleDateString("en-KE", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
   $("footer-year").textContent = new Date().getFullYear();
   function start(data) {
