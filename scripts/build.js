@@ -1,5 +1,5 @@
 /* Generates every public page from data/posts.json:
-     index.html (home), news.html, business.html, sports.html, opinion.html, videos.html, contact.html,
+     index.html (home, with the News stories below the top stories), business.html, sports.html, opinion.html, videos.html, contact.html,
      stories/ID.html (one page per story) and sitemap.xml.
    Runs automatically on GitHub after every post or edit. Run locally with: node scripts/build.js */
 const fs = require("fs");
@@ -12,8 +12,10 @@ const isRemote = (u) => /^(https?:)?\/\//.test(u);
 
 /* each menu item is its own page; stories are listed on the page of their category */
 const CATEGORIES = [["News", "news.html"], ["Business", "business.html"], ["Sports", "sports.html"], ["Opinion", "opinion.html"]];
-const catFile = (cat) => (CATEGORIES.find((c) => c[0] === cat) || [])[1];
-const NAV = [["Home", "index.html"], ["News", "news.html"], ["Business", "business.html"], ["Sports", "sports.html"], ["Opinion", "opinion.html"], ["Videos", "videos.html"], ["Live TV", "videos.html"], ["Contact", "contact.html"]];
+/* News has no page of its own: its stories are listed on the home page, below the top stories */
+const PAGE_CATS = CATEGORIES.filter((c) => c[0] !== "News");
+const catFile = (cat) => cat === "News" ? "index.html#news" : (PAGE_CATS.find((c) => c[0] === cat) || [])[1];
+const NAV = [["Home", "index.html"], ["Business", "business.html"], ["Sports", "sports.html"], ["Opinion", "opinion.html"], ["Videos", "videos.html"], ["Live TV", "videos.html"], ["Contact", "contact.html"]];
 const FONTS = "https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap";
 
 /* Reads width/height from a JPEG or PNG so story images can reserve their space (prevents layout shift). */
@@ -201,6 +203,13 @@ const writePage = (file, html) => { fs.writeFileSync(file, html); };
 function homePage() {
   const featured = pickFeatured(data.articles);
   const side = data.articles.filter((x) => !featured.includes(x)).concat(featured.slice(1)).slice(0, 3);
+  const news = data.articles.filter((a) => a.category === "News");
+  const newsHtml = `
+  <section id="news" class="category-section">
+    <h2 class="section-title">News</h2>
+    <p class="section-count">${news.length} ${news.length === 1 ? "story" : "stories"}</p>
+    ${news.length ? `<div class="card-grid">${news.map((a) => storyCard(a, "")).join("")}</div>` : `<p class="empty-note">No News stories yet. Check back soon.</p>`}
+  </section>`;
   const body = data.articles.length
     ? `<section id="top-stories" class="top-stories">
     <article id="lead-story" class="lead-story">${heroHtml(featured)}</article>
@@ -209,7 +218,7 @@ function homePage() {
       <h2 id="trending-title" class="trending__title">Latest</h2>
       <ol id="trending-list" class="trending__list">${data.articles.slice(0, 6).map((a) => `<li class="trending__item"><a class="trending__link" href="${esc(hrefOf(a, ""))}">${esc(a.title)}</a></li>`).join("")}</ol>
     </aside>
-  </section>`
+  </section>${newsHtml}`
     : `<p class="empty-note">No stories yet. Post the first one from the admin page.</p>`;
   writePage("index.html", layout({
     path: "", active: "index.html", inlineCss: true, scripts: ["js/main.js?v=" + CSS_V],
@@ -235,6 +244,16 @@ function sectionPage([cat, file]) {
 </main>`
   }));
   return list.length;
+}
+
+/* old /news.html links keep working: they go to the News section on the home page */
+function newsRedirect() {
+  fs.writeFileSync("news.html", `<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>News | Vanywinner News</title>
+<meta name="robots" content="noindex"><link rel="canonical" href="${SITE}/">
+<meta http-equiv="refresh" content="0; url=index.html#news"><script>location.replace("index.html#news");</script></head>
+<body><p><a href="index.html#news">Go to the News section</a></p></body></html>
+`);
 }
 
 function videosPage() {
@@ -333,7 +352,9 @@ async function main() {
   const today = new Date().toISOString().slice(0, 10);
   const urls = [[SITE + "/", today]];
   homePage();
-  const counts = CATEGORIES.map((c) => { const n = sectionPage(c); urls.push([SITE + "/" + c[1], today]); return `${c[0]} ${n}`; });
+  newsRedirect();
+  const counts = PAGE_CATS.map((c) => { const n = sectionPage(c); urls.push([SITE + "/" + c[1], today]); return `${c[0]} ${n}`; });
+  counts.unshift(`News ${data.articles.filter((a) => a.category === "News").length} (on home)`);
   videosPage(); urls.push([SITE + "/videos.html", today]);
   contactPage(); urls.push([SITE + "/contact.html", today]);
   storyPages(urls, today);
