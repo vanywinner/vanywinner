@@ -23,27 +23,53 @@
 <meta property="og:image" content="https://vanywinner.co.ke/images/1791010564159.jpg">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap"></noscript>
-<link rel="stylesheet" href="../css/style.css?v=4">
+<link rel="stylesheet" href="../css/style.css?v=5">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"NewsArticle","headline":"KICC lit up in tribute to Raila Odinga as ODM opens \"Mwezi wa Baba\"","author":{"@type":"Person","name":"Newsroom"},"image":"https://vanywinner.co.ke/images/1791010564159.jpg","mainEntityOfPage":"https://vanywinner.co.ke/stories/1791010564159.html","publisher":{"@type":"Organization","name":"Vanywinner News","logo":{"@type":"ImageObject","url":"https://vanywinner.co.ke/favicon.svg"}}}</script>
 </head>
-<body>
+<body data-root="../">
 <header id="site-header" class="site-header">
-  <a class="brand" href="../index.html"><img class="brand__logo" src="../favicon.svg" alt="" width="40" height="40"><span class="brand__name">Vanywinner<small>News</small></span></a>
+  <a class="brand" href="../index.html" aria-label="Vanywinner home">
+    <img class="brand__logo" src="../favicon.svg" alt="" width="40" height="40">
+    <span class="brand__name">Vanywinner<small>News</small></span>
+  </a>
+  <nav id="main-nav" class="main-nav" aria-label="Main">
+    <a class="main-nav__link" href="../index.html">Home</a>
+    <a class="main-nav__link is-active" href="../news.html" aria-current="page">News</a>
+    <a class="main-nav__link" href="../business.html">Business</a>
+    <a class="main-nav__link" href="../sports.html">Sports</a>
+    <a class="main-nav__link" href="../opinion.html">Opinion</a>
+    <a class="main-nav__link" href="../videos.html">Videos</a>
+    <a class="main-nav__link" href="../videos.html">Live TV</a>
+    <a class="main-nav__link" href="../contact.html">Contact</a>
+  </nav>
+  <button id="search-toggle" class="icon-btn" type="button" aria-label="Search stories">Search</button>
+  <button id="menu-toggle" class="icon-btn icon-btn--menu" type="button" aria-label="Open menu" aria-expanded="false">Menu</button>
 </header>
+
+<form id="search-panel" class="search-panel" role="search" hidden>
+  <input id="search-input" class="search-panel__input" type="search" placeholder="Search headlines and summaries" aria-label="Search stories" autocomplete="off">
+  <div id="search-results" class="search-results" aria-live="polite" hidden></div>
+</form>
+
 <main id="story-page" class="story-page">
   <a class="story-page__back" href="../index.html">Back to home</a>
-  <h1 class="story-page__title">KICC lit up in tribute to Raila Odinga as ODM opens &quot;Mwezi wa Baba&quot;</h1><span class="chip">News</span>
+  <h1 class="story-page__title">KICC lit up in tribute to Raila Odinga as ODM opens &quot;Mwezi wa Baba&quot;</h1><a class="chip" href="../news.html">News</a>
   <p class="story-page__meta">By Newsroom, 3 Oct, 9:56</p>
   <img class="story-page__image" src="../images/1791010564159.jpg" alt="KICC lit up in tribute to Raila Odinga as ODM opens &quot;Mwezi wa Baba&quot;" width="452" height="678" decoding="async">
   <div class="story-page__body"><p>Nairobi's Kenyatta International Convention Centre (KICC) became a canvas for a light display honouring the late former Prime Minister Raila Odinga on Friday evening, while supporters in other parts of the country held remembrance events of their own.</p><p>The projection formed part of a countrywide candle-lighting led by the Orange Democratic Movement (ODM), which kicked off its October programme, named &quot;Mwezi wa Baba&quot;, in memory of Raila, widely known as Baba.</p><p>Clips posted on ODM's official X account showed a glowing image of Raila circling the landmark tower, with the words &quot;Baba Raila Odinga&quot; displayed near the top of the building.</p><p>Source: videos shared on ODM's official X account.</p></div>
 </main>
+
 <footer id="site-footer" class="site-footer">
   <div class="site-footer__inner">
     <p class="site-footer__copy">&copy; <span id="footer-year">2026</span> Vanywinner News &middot; Nairobi, Kenya &middot; vanywinner.co.ke</p>
     <p class="site-footer__dev">Developed by <a href="https://wa.me/254715672799" target="_blank" rel="noopener noreferrer">Vanywinner Enterprises</a></p>
   </div>
 </footer>
+
+<script src="../js/site.js?v=5" defer></script>
 </body>
 </html>

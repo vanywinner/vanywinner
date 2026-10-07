@@ -37,7 +37,26 @@
   function renderList() {
     const rows = [...data.breaking.map((t, i) => ["breaking", String(i), t, "Breaking"]), ...data.articles.map((a) => ["articles", a.id, a.title, "Story"]), ...data.videos.map((v) => ["videos", v.id, v.title, "Video"])];
     $("post-list").innerHTML = rows.map(([k, id, t, label]) =>
-      `<li class="post-list__item"><span><span class="post-list__kind">${label}</span>${esc(t)}</span><button class="btn btn--ghost" type="button" data-kind="${k}" data-id="${esc(id)}">Delete</button></li>`).join("") || "<li>No posts yet.</li>";
+      `<li class="post-list__item"><span><span class="post-list__kind">${label}</span>${esc(t)}</span><span class="post-list__actions">${k === "articles" ? `<button class="btn btn--ghost btn--edit" type="button" data-edit="${esc(id)}">Edit</button>` : ""}<button class="btn btn--ghost" type="button" data-kind="${k}" data-id="${esc(id)}">Delete</button></span></li>`).join("") || "<li>No posts yet.</li>";
+  }
+  /* ---- editing a story: the composer is filled with the story, "Save changes" updates it in place ---- */
+  let editingId = null;
+  function startEdit(id) {
+    const a = data.articles.find((x) => x.id === id); if (!a) return;
+    editingId = id;
+    document.querySelector("input[name=post-type][value=story]").checked = true; syncType();
+    $("post-title").value = a.title || ""; $("post-body").value = a.body || ""; $("post-summary").value = a.summary || "";
+    $("post-category").value = a.category || "News"; $("post-author").value = a.author || "";
+    $("post-photo").value = "";
+    if (a.image) { $("photo-preview").src = a.image; $("photo-preview").hidden = false; } else { $("photo-preview").hidden = true; }
+    $("photo-label").textContent = a.image ? "Change photo" : "Add photo";
+    $("edit-title").textContent = a.title; $("edit-banner").hidden = false; $("type-pills").hidden = true;
+    $("post-btn").textContent = "Save changes"; say("");
+    $("composer").scrollIntoView({ behavior: "smooth", block: "start" }); $("post-title").focus({ preventScroll: true });
+  }
+  function stopEdit() {
+    editingId = null; $("composer").reset(); $("photo-preview").hidden = true; $("photo-label").textContent = "Add photo";
+    $("edit-banner").hidden = true; $("type-pills").hidden = false; $("post-btn").textContent = "Post"; syncType();
   }
   function show() {
     const on = !!cfg;
@@ -65,9 +84,20 @@
   $("composer").addEventListener("submit", async (e) => {
     e.preventDefault();
     const type = document.querySelector("input[name=post-type]:checked").value, title = $("post-title").value.trim();
-    $("post-btn").disabled = true; say("Publishing...");
+    $("post-btn").disabled = true; say(editingId ? "Saving changes..." : "Publishing...");
     try {
       await load();
+      if (editingId) {
+        const a = data.articles.find((x) => x.id === editingId);
+        if (!a) throw new Error("This story no longer exists. Cancel the edit and refresh.");
+        const f = $("post-photo").files[0], body = $("post-body").value.trim();
+        if (f) { say("Uploading photo..."); const image = `images/${editingId}-${Date.now()}.jpg`; await gh(image, { method: "PUT", body: JSON.stringify({ message: "Replace photo", content: await shrink(f), branch: cfg.branch }) }); a.image = image; }
+        Object.assign(a, { category: $("post-category").value, title, summary: $("post-summary").value.trim() || body.slice(0, 160), body, author: $("post-author").value.trim() || "Newsroom", updated: new Date().toISOString() });
+        await save("Edit post: " + title);
+        stopEdit();
+        say("Saved. The live site updates in a minute or two.");
+        $("post-btn").disabled = false; return;
+      }
       const when = new Date().toLocaleString("en-KE", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }), id = String(Date.now());
       if (type === "breaking") { data.breaking = [title, ...data.breaking].slice(0, 8); }
       else if (type === "video") {
@@ -87,9 +117,12 @@
     $("post-btn").disabled = false;
   });
 
+  $("cancel-edit").addEventListener("click", () => { stopEdit(); say(""); });
   $("post-list").addEventListener("click", async (e) => {
+    const ed = e.target.closest("button[data-edit]");
+    if (ed) { startEdit(ed.dataset.edit); return; }
     const b = e.target.closest("button[data-id]"); if (!b || !confirm("Delete this post?")) return;
-    try { await load(); if (b.dataset.kind === "breaking") data.breaking.splice(Number(b.dataset.id), 1); else data[b.dataset.kind] = data[b.dataset.kind].filter((x) => x.id !== b.dataset.id); await save("Delete post"); say("Deleted."); }
+    try { await load(); if (b.dataset.kind === "articles" && b.dataset.id === editingId) stopEdit(); if (b.dataset.kind === "breaking") data.breaking.splice(Number(b.dataset.id), 1); else data[b.dataset.kind] = data[b.dataset.kind].filter((x) => x.id !== b.dataset.id); await save("Delete post"); say("Deleted."); }
     catch (err) { say(err.message, true); }
   });
 

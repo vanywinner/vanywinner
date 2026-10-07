@@ -8,8 +8,8 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap"></noscript>
-<link rel="stylesheet" href="css/style.css?v=4">
-<link rel="stylesheet" href="css/admin.css?v=3">
+<link rel="stylesheet" href="css/style.css?v=5">
+<link rel="stylesheet" href="css/admin.css?v=4">
 </head>
 <body>
 <header id="site-header" class="site-header">
@@ -28,9 +28,13 @@
   </form>
 
   <form id="composer" class="panel composer" hidden>
+    <div id="edit-banner" class="edit-banner" hidden>
+      <p class="edit-banner__text">Editing story: <strong id="edit-title"></strong></p>
+      <button id="cancel-edit" class="btn btn--ghost" type="button">Cancel edit</button>
+    </div>
     <div class="composer__top"><img class="composer__avatar" src="favicon.svg" alt="" width="46" height="46">
       <input id="post-title" class="composer__title" placeholder="What is the headline?" required></div>
-    <div class="type-pills" role="radiogroup" aria-label="Post type">
+    <div id="type-pills" class="type-pills" role="radiogroup" aria-label="Post type">
       <label class="pill"><input type="radio" name="post-type" value="story" checked>Story</label>
       <label class="pill"><input type="radio" name="post-type" value="video">Video</label>
       <label class="pill"><input type="radio" name="post-type" value="breaking">Breaking line</label>
@@ -40,7 +44,7 @@
       <textarea id="post-summary" rows="2" class="composer__summary" placeholder="Short summary shown on the home page"></textarea>
       <div class="field-row"><label class="field">Category<select id="post-category"><option>News</option><option>Business</option><option>Sports</option><option>Opinion</option></select></label>
       <label class="field">Author<input id="post-author" placeholder="Newsroom"></label></div>
-      <label class="photo-btn">Add photo<input id="post-photo" type="file" accept="image/*" hidden></label>
+      <label class="photo-btn"><span id="photo-label">Add photo</span><input id="post-photo" type="file" accept="image/*" hidden></label>
       <img id="photo-preview" class="photo-preview" alt="" hidden>
     </div>
     <label class="field" data-for="video" hidden>YouTube link<input id="post-video-url" placeholder="https://www.youtube.com/watch?v=..."></label>
