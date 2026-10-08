@@ -262,15 +262,6 @@
       "time": "Today",
       "id": "s10",
       "body": "Replace this placeholder in the admin page. Write the full story here."
-    },
-    {
-      "category": "Opinion",
-      "title": "Editorial headline placeholder from the editor's desk",
-      "summary": "Short summary text.",
-      "author": "Editorial Board",
-      "time": "Today",
-      "id": "s11",
-      "body": "Replace this placeholder in the admin page. Write the full story here."
     }
   ],
   "videos": [
