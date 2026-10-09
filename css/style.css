@@ -229,6 +229,25 @@ body.has-breaking { --bar-h: 44px; }
 }
 @media (prefers-reduced-motion: reduce) { .hero__slide, .hero__dot { transition: none; } }
 
+/* About page */
+.about { max-width: 920px; margin: 0 auto; padding: 36px 5vw 70px; display: grid; gap: 28px; }
+.about-hero { padding: 40px 34px; border-radius: 22px 22px 22px 70px; color: #fff; background: radial-gradient(circle at 88% 10%, #2F6BFF 0%, transparent 45%), linear-gradient(160deg, var(--color-navy), #0B2B9A); }
+.about-hero__title { margin: 0 0 12px; font: 800 clamp(2rem, 5vw, 3rem)/1.05 var(--font-head); letter-spacing: -.03em; }
+.about-hero__lead { margin: 0; max-width: 56ch; color: #CFE0FF; font-size: 1.1rem; }
+.about-card { padding: 28px; background: #fff; border: 1px solid var(--color-line); border-radius: 18px; }
+.about-card__title { margin: 0 0 14px; padding-left: 14px; border-left: 6px solid var(--color-cobalt); font: 800 1.4rem/1.1 var(--font-head); letter-spacing: -.02em; }
+.about-card p { margin: 0 0 1em; }
+.about-card p:last-child { margin-bottom: 0; }
+.about-list { margin: 0; padding-left: 1.2em; }
+.about-list li { margin-bottom: .55em; }
+.contact-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin: 0; padding: 0; list-style: none; }
+.contact-list__item { padding: 16px 18px; background: var(--color-mist); border-radius: 14px; }
+.contact-list__label { display: block; margin-bottom: 4px; color: #5C6B8C; font-size: .82rem; font-weight: 600; }
+.contact-list__link { color: var(--color-cobalt); font-weight: 600; word-break: break-word; }
+.contact-list__link:hover { text-decoration: underline; }
+.site-footer__links { margin: 10px 0 0; }
+.site-footer__links a { margin: 0 10px; color: #CFE0FF; }
+.site-footer__links a:hover { text-decoration: underline; }
 /* each section on its own page: story count, wider video page, search results */
 .section-count { margin: -8px 0 22px; padding-left: 20px; color: #5C6B8C; font-size: .92rem; }
 .page--videos { max-width: none; padding: 0; }
