@@ -1,5 +1,5 @@
 /* Generates every public page from data/posts.json:
-     index.html (home, with the News stories below the top stories), business.html, sports.html, opinion.html, videos.html, contact.html,
+     index.html (home, with the News stories below the top stories), business.html, sports.html, videos.html, about.html, contact.html,
      stories/ID.html (one page per story) and sitemap.xml.
    Runs automatically on GitHub after every post or edit. Run locally with: node scripts/build.js */
 const fs = require("fs");
@@ -11,11 +11,11 @@ const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": 
 const isRemote = (u) => /^(https?:)?\/\//.test(u);
 
 /* each menu item is its own page; stories are listed on the page of their category */
-const CATEGORIES = [["News", "news.html"], ["Business", "business.html"], ["Sports", "sports.html"], ["Opinion", "opinion.html"]];
+const CATEGORIES = [["News", "news.html"], ["Business", "business.html"], ["Sports", "sports.html"]];
 /* News has no page of its own: its stories are listed on the home page, below the top stories */
 const PAGE_CATS = CATEGORIES.filter((c) => c[0] !== "News");
 const catFile = (cat) => cat === "News" ? "index.html#news" : (PAGE_CATS.find((c) => c[0] === cat) || [])[1];
-const NAV = [["Home", "index.html"], ["Business", "business.html"], ["Sports", "sports.html"], ["Opinion", "opinion.html"], ["Videos", "videos.html"], ["Live TV", "videos.html"], ["Contact", "contact.html"]];
+const NAV = [["Home", "index.html"], ["Business", "business.html"], ["Sports", "sports.html"], ["Videos", "videos.html"], ["About", "about.html"], ["Contact", "contact.html"]];
 const FONTS = "https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap";
 
 /* Reads width/height from a JPEG or PNG so story images can reserve their space (prevents layout shift). */
@@ -179,7 +179,10 @@ ${GA}
 <meta property="og:title" content="${esc(o.ogTitle || o.title)}">
 <meta property="og:description" content="${esc(o.desc)}">
 <meta property="og:url" content="${url}">${ogImg}
+<link rel="icon" href="${root}favicon.ico" sizes="48x48">
 <link rel="icon" href="${root}favicon.svg" type="image/svg+xml">
+<link rel="icon" href="${root}favicon-96x96.png" sizes="96x96" type="image/png">
+<link rel="apple-touch-icon" href="${root}apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" as="style" href="${FONTS}" onload="this.onload=null;this.rel='stylesheet'">
@@ -223,7 +226,7 @@ function homePage() {
   writePage("index.html", layout({
     path: "", active: "index.html", inlineCss: true, scripts: ["js/main.js?v=" + CSS_V],
     title: "Vanywinner News: Kenya, Africa and the world",
-    desc: "Breaking news, business, sport, opinion and video from Kenya and beyond.",
+    desc: "Breaking news, business, sport and video from Kenya and beyond.",
     main: `<main id="main-content" class="page">\n  ${body}\n</main>`
   }));
 }
@@ -314,6 +317,61 @@ function contactPage() {
   }));
 }
 
+function aboutPage() {
+  const ld = `\n<script type="application/ld+json">\n${JSON.stringify({
+    "@context": "https://schema.org", "@type": "NewsMediaOrganization", name: "Vanywinner News",
+    alternateName: ["Vanywinner", "vanywinner.co.ke"], url: SITE + "/", logo: SITE + "/favicon-192x192.png", email: "vanywinner@gmail.com",
+    address: { "@type": "PostalAddress", addressLocality: "Nairobi", addressCountry: "KE" },
+    founder: { "@type": "Person", name: "Okhala Winslaus Ondwasi", email: "winslausokhala@gmail.com", url: "https://winslausokhala.github.io",
+      sameAs: ["https://winslausokhala.github.io", "https://www.linkedin.com/in/winslaus-okhala-861024409"] }
+  }).replace(/</g, "\\u003c")}\n</script>`;
+  writePage("about.html", layout({
+    path: "about.html", active: "about.html", head: ld,
+    title: "About Vanywinner News | Nairobi, Kenya",
+    desc: "Vanywinner News is an independent Kenyan news site covering news, business and sports. Meet the founder, Okhala Winslaus Ondwasi, and get in touch.",
+    main: `<main id="about-page" class="about">
+  <section id="about-hero" class="about-hero">
+    <h1 class="about-hero__title">About Vanywinner News</h1>
+    <p class="about-hero__lead">An independent news site from Nairobi, bringing readers clear, fairly reported stories from Kenya, Africa and the world.</p>
+  </section>
+
+  <section id="about-site" class="about-card">
+    <h2 class="about-card__title">What we do</h2>
+    <p>Vanywinner News covers news, business and sports, with a growing focus on data and the economy. We publish at vanywinner.co.ke and aim to make the day's important stories easy to read on any phone.</p>
+    <p>The site is run by one person, which means every story is written, checked and posted by the same hand. We would rather publish fewer stories that we can stand behind than rush out many we cannot.</p>
+  </section>
+
+  <section id="about-standards" class="about-card">
+    <h2 class="about-card__title">Our standards</h2>
+    <ul class="about-list">
+      <li><strong>Original writing.</strong> We write our own reports and do not copy other outlets' articles. When we rely on another source, we say so.</li>
+      <li><strong>Clear attribution.</strong> Claims, especially serious allegations, are attributed to the person or document they come from and are not presented as established fact.</li>
+      <li><strong>Corrections.</strong> If we get something wrong, tell us at vanywinner@gmail.com and we will correct the story and note the change.</li>
+    </ul>
+  </section>
+
+  <section id="about-founder" class="about-card">
+    <h2 class="about-card__title">About the founder</h2>
+    <p><strong>Okhala Winslaus Ondwasi</strong> is a data analyst and statistics teacher. He is a final-year BSc Applied Statistics with Information Technology student at Masinde Muliro University of Science and Technology, with graduation expected in December 2026.</p>
+    <p>He completed a three-month industrial attachment as a statistical analyst at the Public Benefit Organizations Regulatory Authority (PBORA). He also builds websites, including sites that connect to M-Pesa through Safaricom's Daraja API, writes Python, and cleans and analyses data in Excel.</p>
+    <p>Alongside the newsroom, he offers website development, online marketing and SEO services. See his work at <a class="contact-list__link" href="https://winslausokhala.github.io" rel="noopener">winslausokhala.github.io</a>. Where a story promotes those services, we say so.</p>
+  </section>
+
+  <section id="about-contact" class="about-card">
+    <h2 class="about-card__title">Contact us</h2>
+    <ul class="contact-list">
+      <li class="contact-list__item"><span class="contact-list__label">Newsroom email</span><a class="contact-list__link" href="mailto:vanywinner@gmail.com">vanywinner@gmail.com</a></li>
+      <li class="contact-list__item"><span class="contact-list__label">Founder's email</span><a class="contact-list__link" href="mailto:winslausokhala@gmail.com">winslausokhala@gmail.com</a></li>
+      <li class="contact-list__item"><span class="contact-list__label">Phone and WhatsApp</span><a class="contact-list__link" href="tel:${PHONE_TEL}">${PHONE_SHOW}</a></li>
+      <li class="contact-list__item"><span class="contact-list__label">Portfolio</span><a class="contact-list__link" href="https://winslausokhala.github.io" rel="noopener">winslausokhala.github.io</a></li>
+      <li class="contact-list__item"><span class="contact-list__label">LinkedIn</span><a class="contact-list__link" href="https://www.linkedin.com/in/winslaus-okhala-861024409" rel="noopener">Okhala Winslaus Ondwasi</a></li>
+      <li class="contact-list__item"><span class="contact-list__label">Based in</span>Nairobi, Kenya</li>
+    </ul>
+  </section>
+</main>`
+  }));
+}
+
 function storyPages(urls, today) {
   fs.rmSync("stories", { recursive: true, force: true });
   fs.mkdirSync("stories");
@@ -356,6 +414,7 @@ async function main() {
   const counts = PAGE_CATS.map((c) => { const n = sectionPage(c); urls.push([SITE + "/" + c[1], today]); return `${c[0]} ${n}`; });
   counts.unshift(`News ${data.articles.filter((a) => a.category === "News").length} (on home)`);
   videosPage(); urls.push([SITE + "/videos.html", today]);
+  aboutPage(); urls.push([SITE + "/about.html", today]);
   contactPage(); urls.push([SITE + "/contact.html", today]);
   storyPages(urls, today);
   const known = new Set(CATEGORIES.map((c) => c[0]));
@@ -366,6 +425,6 @@ async function main() {
 ${urls.map(([u, d]) => `  <url><loc>${u}</loc><lastmod>${d}</lastmod></url>`).join("\n")}
 </urlset>
 `);
-  console.log(`Built home, ${counts.join(", ")}, ${data.videos.length} videos, contact, ${data.articles.length} story pages and sitemap.xml`);
+  console.log(`Built home, ${counts.join(", ")}, ${data.videos.length} videos, about, contact, ${data.articles.length} story pages and sitemap.xml`);
 }
 main().catch((e) => { console.error(e); process.exit(1); });

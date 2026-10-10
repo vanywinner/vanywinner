@@ -68,7 +68,6 @@ img { max-width: 100%; display: block; }
 .thumb--news { background: linear-gradient(135deg, #0B2B9A, #3E8BFF); }
 .thumb--business { background: linear-gradient(135deg, #07526B, #35C2D8); }
 .thumb--sports { background: linear-gradient(135deg, #1B2E8C, #6F7DFF); }
-.thumb--opinion { background: linear-gradient(135deg, #0A1633, #4A6BB8); }
 
 /* videos */
 .videos { margin: 0 -5vw 48px; padding: 36px 5vw 40px; background: var(--color-navy); color: #fff; }
