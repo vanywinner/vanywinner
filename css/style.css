@@ -279,3 +279,27 @@ a.chip:hover { background: var(--color-cobalt); color: #fff; }
 @media (max-width: 760px) { .contact__reach { padding: 18px; } .contact__action { width: 100%; text-align: center; } }
 .video-card { align-self: start; }
 .page { min-height: calc(100vh - 200px); }
+
+/* Legal pages, cookie banner, footer legal links */
+.legal h2 { margin: 1.6em 0 .5em; font: 800 1.2rem/1.2 var(--font-head); color: var(--color-navy); }
+.legal h2:first-of-type { margin-top: .6em; }
+.legal p, .legal li { line-height: 1.7; }
+.legal ul { padding-left: 1.2em; }
+.legal__updated { color: #5C6B8C; font-size: .9rem; }
+.legal__scroll { overflow-x: auto; margin-bottom: 1em; }
+.legal__table { width: 100%; min-width: 620px; border-collapse: collapse; font-size: .92rem; }
+.legal__table th, .legal__table td { padding: 10px 12px; border-bottom: 1px solid var(--color-line); text-align: left; vertical-align: top; }
+.legal__table th { background: var(--color-mist); }
+.legal__link-btn, .site-footer__cookie { padding: 0; border: 0; background: none; font: inherit; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.legal__link-btn { color: var(--color-cobalt); font-weight: 600; }
+.site-footer__cookie { color: #fff; }
+.site-footer__cookie:hover { color: var(--color-signal); }
+.site-footer__legal { display: flex; flex-wrap: wrap; gap: 6px 18px; width: 100%; font-size: .9rem; }
+.cookie-banner { position: fixed; left: 16px; right: 16px; bottom: 16px; z-index: 60; display: flex; flex-wrap: wrap; align-items: center; gap: 14px 24px; max-width: 980px; margin: 0 auto; padding: 18px 22px; background: var(--color-navy); color: #fff; border-top: 4px solid var(--color-alert, #E4202D); border-radius: 16px; box-shadow: 0 14px 40px rgba(3,9,42,.45); }
+.cookie-banner[hidden] { display: none; }
+.cookie-banner__text { flex: 1 1 360px; margin: 0; font-size: .92rem; line-height: 1.55; }
+.cookie-banner__text a { color: #9CCBFF; text-decoration: underline; }
+.cookie-banner__actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.cookie-btn { padding: 10px 20px; border: 2px solid #fff; border-radius: 999px; background: #fff; color: var(--color-navy); font: 700 .92rem var(--font-body); cursor: pointer; }
+.cookie-btn--ghost { background: transparent; color: #fff; }
+.cookie-btn:hover { background: var(--color-signal); border-color: var(--color-signal); color: var(--color-ink); }

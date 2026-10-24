@@ -137,25 +137,23 @@ function headerHtml(root, active) {
 </form>
 `;
 }
-const footerHtml = () => `<footer id="site-footer" class="site-footer">
+const footerHtml = (root = "") => `<footer id="site-footer" class="site-footer">
   <div class="site-footer__inner">
     <p class="site-footer__copy">&copy; <span id="footer-year">${new Date().getFullYear()}</span> Vanywinner News &middot; Nairobi, Kenya &middot; vanywinner.co.ke</p>
+    <nav class="site-footer__legal" aria-label="Legal"><a href="${root}privacy.html">Privacy Policy</a><a href="${root}terms.html">Terms and Conditions</a><a href="${root}cookies.html">Cookie Policy</a><button type="button" class="site-footer__cookie" data-cookie-settings>Cookie settings</button></nav>
     <p class="site-footer__dev">Developed by <a href="https://wa.me/254715672799" target="_blank" rel="noopener noreferrer">Vanywinner Enterprises</a></p>
   </div>
 </footer>`;
-const GA = `<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-NP7RJ1HD89"></script>
+const GA = `<!-- Google Analytics is loaded by js/consent.js only after the visitor accepts cookies -->
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-NP7RJ1HD89');
+  gtag('consent', 'default', { analytics_storage: 'denied', ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied' });
 </script>`;
 function minCss() {
   return fs.readFileSync("css/style.css", "utf8").replace(/\/\*[\s\S]*?\*\//g, "").replace(/\s+/g, " ").replace(/\s*([{};:,>])\s*/g, "$1").replace(/;}/g, "}");
 }
-const CSS_V = "5";
+const CSS_V = "6";
 
 /* one function builds the frame for every page */
 function layout(o) {
@@ -163,7 +161,7 @@ function layout(o) {
   const url = SITE + "/" + (o.path || "");
   const ogImg = o.ogImage ? `\n<meta property="og:image" content="${o.ogImage}">\n<meta name="twitter:card" content="summary_large_image">` : "";
   const css = o.inlineCss ? `<style>${minCss()}</style>` : `<link rel="stylesheet" href="${root}css/style.css?v=${CSS_V}">`;
-  const scripts = [`${root}js/site.js?v=${CSS_V}`].concat(o.scripts || []).map((s) => `<script src="${s}" defer></script>`).join("\n");
+  const scripts = [`${root}js/site.js?v=${CSS_V}`, `${root}js/consent.js?v=${CSS_V}`].concat(o.scripts || []).map((s) => `<script src="${s}" defer></script>`).join("\n");
   const bar = o.story ? "" : breakingBar();
   return `<!DOCTYPE html>
 <html lang="en">
@@ -193,7 +191,7 @@ ${css}${o.head || ""}
 ${bar}${headerHtml(root, o.active)}
 ${o.main}
 
-${o.after || ""}${footerHtml()}
+${o.after || ""}${footerHtml(root)}
 
 ${scripts}
 </body>
@@ -372,6 +370,22 @@ function aboutPage() {
   }));
 }
 
+function legalPage(file, title, lead, desc) {
+  const body = fs.readFileSync(`content/${file}`, "utf8");
+  writePage(file, layout({
+    path: file, active: "", title: `${title} | Vanywinner News`, desc,
+    main: `<main id="${file.replace(".html", "")}-page" class="about">
+  <section class="about-hero">
+    <h1 class="about-hero__title">${title}</h1>
+    <p class="about-hero__lead">${lead}</p>
+  </section>
+  <section class="about-card legal">
+${body}
+  </section>
+</main>`
+  }));
+}
+
 function storyPages(urls, today) {
   fs.rmSync("stories", { recursive: true, force: true });
   fs.mkdirSync("stories");
@@ -416,6 +430,12 @@ async function main() {
   videosPage(); urls.push([SITE + "/videos.html", today]);
   aboutPage(); urls.push([SITE + "/about.html", today]);
   contactPage(); urls.push([SITE + "/contact.html", today]);
+  legalPage("privacy.html", "Privacy Policy", "How Vanywinner News collects, uses and protects your information.", "How Vanywinner News collects, uses and protects your personal information, including cookies, analytics and advertising.");
+  urls.push([SITE + "/privacy.html", today]);
+  legalPage("terms.html", "Terms and Conditions", "The rules for using Vanywinner News.", "The terms and conditions for using Vanywinner News, including content use, accuracy, advertising and complaints.");
+  urls.push([SITE + "/terms.html", today]);
+  legalPage("cookies.html", "Cookie Policy", "The cookies we use and how you can control them.", "The cookies and similar technologies used on Vanywinner News and how to manage your choices.");
+  urls.push([SITE + "/cookies.html", today]);
   storyPages(urls, today);
   const known = new Set(CATEGORIES.map((c) => c[0]));
   const lost = data.articles.filter((a) => !known.has(a.category));
@@ -425,6 +445,6 @@ async function main() {
 ${urls.map(([u, d]) => `  <url><loc>${u}</loc><lastmod>${d}</lastmod></url>`).join("\n")}
 </urlset>
 `);
-  console.log(`Built home, ${counts.join(", ")}, ${data.videos.length} videos, about, contact, ${data.articles.length} story pages and sitemap.xml`);
+  console.log(`Built home, ${counts.join(", ")}, ${data.videos.length} videos, about, contact, privacy, terms, cookies, ${data.articles.length} story pages and sitemap.xml`);
 }
 main().catch((e) => { console.error(e); process.exit(1); });
