@@ -63,10 +63,3 @@ textarea { resize: vertical; margin-bottom: 14px; }
 @media (max-width: 640px) { .editor__hint { display: none; } .editor__page { padding: 16px; } }
 
 .admin { max-width: 900px; }
-
-.switch-card { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px 24px; border-left: 6px solid var(--color-alert, #E4202D); }
-.switch-card[hidden] { display: none; }
-.switch-card__text { flex: 1 1 320px; }
-.switch-card__state { margin: 0 0 6px; font-weight: 700; }
-.switch-card__state.is-on { color: #0B7A3B; } .switch-card__state.is-off { color: #B42318; }
-.btn--off { background: #B42318; } .btn--off:hover { background: #7A1710; }

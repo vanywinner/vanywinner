@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>try{if(localStorage.getItem("vw_ticker")==="off")document.documentElement.classList.add("ticker-off")}catch(e){}</script>
 <!-- Google Analytics is loaded by js/consent.js only after the visitor accepts cookies -->
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -25,7 +26,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap"></noscript>
-<link rel="stylesheet" href="css/style.css?v=8">
+<link rel="stylesheet" href="css/style.css?v=7">
 </head>
 <body class="has-breaking" data-root="">
 <div id="election-bar" class="election-bar">
@@ -33,8 +34,9 @@
   <div id="election-countdown" class="election-countdown" role="timer" aria-label="Time left until the election" data-target="2027-08-10T06:00:00+03:00">
     <span class="cd"><b class="cd__num" data-unit="days">286</b><i class="cd__lbl">days</i></span>
     <span class="cd"><b class="cd__num" data-unit="hours">15</b><i class="cd__lbl">hours</i></span>
-    <span class="cd"><b class="cd__num" data-unit="minutes">29</b><i class="cd__lbl">minutes</i></span>
+    <span class="cd"><b class="cd__num" data-unit="minutes">37</b><i class="cd__lbl">minutes</i></span>
   </div>
+  <button id="ticker-toggle" class="election-bar__toggle" type="button" aria-pressed="false">Hide breaking news</button>
 </div>
 <div id="breaking-bar" class="breaking-bar" role="region" aria-label="Breaking news">
   <span class="breaking-bar__label"><i class="breaking-bar__dot"></i>Breaking News</span>
@@ -129,7 +131,7 @@
   </div>
 </footer>
 
-<script src="js/site.js?v=8" defer></script>
-<script src="js/consent.js?v=8" defer></script>
+<script src="js/site.js?v=7" defer></script>
+<script src="js/consent.js?v=7" defer></script>
 </body>
 </html>

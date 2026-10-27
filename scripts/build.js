@@ -1,7 +1,7 @@
 /* Generates every public page from data/posts.json:
      index.html (home, with the News stories below the top stories), business.html, sports.html, videos.html, about.html, contact.html,
      stories/TITLE-SLUG.html (one page per story, named after its title) and sitemap.xml.
-   Site switches (breaking bar on/off, election countdown) come from data/settings.json and are changed only from the admin page.
+   Site switches (breaking bar, election countdown) come from data/settings.json.
    Runs automatically on GitHub after every post or edit. Run locally with: node scripts/build.js */
 const fs = require("fs");
 const SITE = "https://vanywinner.co.ke";
@@ -223,19 +223,26 @@ function headerHtml(root, active) {
 `;
 }
 /* ---------- election countdown strip (sits above the breaking-news bar on every page) ---------- */
-function electionStrip() {
+function electionStrip(hasBar) {
   const target = new Date(settings.electionDate);
-  if (!settings.showCountdown || isNaN(target)) return "";
-  const ms = Math.max(0, target - Date.now());
-  const d = Math.floor(ms / 864e5), h = Math.floor(ms % 864e5 / 36e5), m = Math.floor(ms % 36e5 / 6e4);
-  const when = target.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric", timeZone: "Africa/Nairobi" });
-  return `<div id="election-bar" class="election-bar">
-  <p class="election-bar__label"><span class="election-bar__title">${esc(settings.electionLabel)}</span><span class="election-bar__date">${when}</span></p>
+  const showCd = settings.showCountdown && !isNaN(target);
+  if (!showCd && !hasBar) return "";
+  let cd = "";
+  if (showCd) {
+    const ms = Math.max(0, target - Date.now());
+    const d = Math.floor(ms / 864e5), h = Math.floor(ms % 864e5 / 36e5), m = Math.floor(ms % 36e5 / 6e4);
+    const when = target.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric", timeZone: "Africa/Nairobi" });
+    cd = `<p class="election-bar__label"><span class="election-bar__title">${esc(settings.electionLabel)}</span><span class="election-bar__date">${when}</span></p>
   <div id="election-countdown" class="election-countdown" role="timer" aria-label="Time left until the election" data-target="${esc(settings.electionDate)}">
     <span class="cd"><b class="cd__num" data-unit="days">${d}</b><i class="cd__lbl">days</i></span>
     <span class="cd"><b class="cd__num" data-unit="hours">${String(h).padStart(2, "0")}</b><i class="cd__lbl">hours</i></span>
     <span class="cd"><b class="cd__num" data-unit="minutes">${String(m).padStart(2, "0")}</b><i class="cd__lbl">minutes</i></span>
-  </div>
+  </div>`;
+  }
+  const toggle = hasBar ? `<button id="ticker-toggle" class="election-bar__toggle" type="button" aria-pressed="false">Hide breaking news</button>` : "";
+  return `<div id="election-bar" class="election-bar${showCd ? "" : " election-bar--solo"}">
+  ${cd}
+  ${toggle}
 </div>
 `;
 }
@@ -256,7 +263,7 @@ const GA = `<!-- Google Analytics is loaded by js/consent.js only after the visi
 function minCss() {
   return fs.readFileSync("css/style.css", "utf8").replace(/\/\*[\s\S]*?\*\//g, "").replace(/\s+/g, " ").replace(/\s*([{};:,>])\s*/g, "$1").replace(/;}/g, "}");
 }
-const CSS_V = "8";
+const CSS_V = "7";
 
 /* one function builds the frame for every page */
 function layout(o) {
@@ -266,10 +273,11 @@ function layout(o) {
   const css = o.inlineCss ? `<style>${minCss()}</style>` : `<link rel="stylesheet" href="${root}css/style.css?v=${CSS_V}">`;
   const scripts = [`${root}js/site.js?v=${CSS_V}`, `${root}js/consent.js?v=${CSS_V}`].concat(o.scripts || []).map((s) => `<script src="${s}" defer></script>`).join("\n");
   const bar = o.story ? "" : breakingBar();
-  const strip = electionStrip();
+  const strip = electionStrip(!!bar);
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
+<script>try{if(localStorage.getItem("vw_ticker")==="off")document.documentElement.classList.add("ticker-off")}catch(e){}</script>
 ${GA}
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">

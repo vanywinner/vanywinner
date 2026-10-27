@@ -1,4 +1,4 @@
-/* Runs on every page: date and year, election countdown, menu button, search, and the video player (on the Videos page). */
+/* Runs on every page: date and year, election countdown, breaking-news show/hide button, menu button, search, and the video player (on the Videos page). */
 (function () {
   const $ = (id) => document.getElementById(id);
   const root = document.body.dataset.root || "";
@@ -29,6 +29,22 @@
     };
     tick(); setInterval(tick, 1000);
     document.addEventListener("visibilitychange", () => { if (!document.hidden) tick(); });
+  }
+
+  /* breaking-news button: visitors can hide or show the ticker (remembered on their device) */
+  const tt = $("ticker-toggle"), html = document.documentElement;
+  if (tt) {
+    const paint = () => {
+      const off = html.classList.contains("ticker-off");
+      tt.textContent = off ? "Show breaking news" : "Hide breaking news";
+      tt.setAttribute("aria-pressed", off ? "true" : "false");
+    };
+    tt.addEventListener("click", () => {
+      const off = html.classList.toggle("ticker-off");
+      try { localStorage.setItem("vw_ticker", off ? "off" : "on"); } catch (e) {}
+      paint();
+    });
+    paint();
   }
 
   /* menu button on phones */

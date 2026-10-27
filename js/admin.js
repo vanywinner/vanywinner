@@ -256,7 +256,7 @@
   }
   function show() {
     const on = !!cfg;
-    $("setup-form").hidden = on; $("composer").hidden = !on; $("posts-panel").hidden = !on; $("settings-panel").hidden = !on; $("breaking-switch").hidden = !on; $("logout-btn").hidden = !on;
+    $("setup-form").hidden = on; $("composer").hidden = !on; $("posts-panel").hidden = !on; $("settings-panel").hidden = !on; $("logout-btn").hidden = !on;
     if (on) { load().catch((e) => say("Could not connect: " + e.message, true)); loadSettings(); }
   }
   function syncType() {
@@ -267,51 +267,21 @@
 
   /* ---------- site settings (data/settings.json) ---------- */
   const DEFAULTS = { showBreaking: true, showCountdown: true, electionLabel: "Kenya General Election", electionDate: "2027-08-10T06:00:00+03:00" };
-  let current = Object.assign({}, DEFAULTS);
-  async function fetchSettings() {
-    settingsSha = null; current = Object.assign({}, DEFAULTS);
-    try { const j = await gh("data/settings.json"); settingsSha = j.sha; current = Object.assign({}, DEFAULTS, JSON.parse(unb64(j.content))); } catch (e) {}
-    return current;
-  }
-  async function writeSettings(next, message) {
-    const body = { message, content: b64(JSON.stringify(next, null, 2) + "\n"), branch: cfg.branch };
-    if (settingsSha) body.sha = settingsSha;
-    const j = await gh("data/settings.json", { method: "PUT", body: JSON.stringify(body) });
-    settingsSha = j.content.sha; current = next;
-  }
-  function paintBreaking() {
-    const on = !!current.showBreaking;
-    $("breaking-state").textContent = on ? "ON: the bar is showing to all visitors" : "OFF: the bar is hidden from all visitors";
-    $("breaking-state").className = "switch-card__state " + (on ? "is-on" : "is-off");
-    $("breaking-toggle").textContent = on ? "Turn off" : "Turn on";
-    $("breaking-toggle").classList.toggle("btn--off", on);
-    $("breaking-toggle").disabled = false;
-  }
   async function loadSettings() {
-    try { await fetchSettings(); } catch (e) {}
-    paintBreaking();
-    $("set-countdown").checked = !!current.showCountdown;
-    $("set-label").value = current.electionLabel || ""; $("set-date").value = String(current.electionDate || DEFAULTS.electionDate).slice(0, 16);
+    let s = DEFAULTS; settingsSha = null;
+    try { const j = await gh("data/settings.json"); settingsSha = j.sha; s = Object.assign({}, DEFAULTS, JSON.parse(unb64(j.content))); } catch (e) {}
+    $("set-breaking").checked = !!s.showBreaking; $("set-countdown").checked = !!s.showCountdown;
+    $("set-label").value = s.electionLabel || ""; $("set-date").value = String(s.electionDate || DEFAULTS.electionDate).slice(0, 16);
   }
-  $("breaking-toggle").addEventListener("click", async () => {
-    const st = $("breaking-status"); st.className = "status"; st.textContent = "Checking the latest setting...";
-    $("breaking-toggle").disabled = true;
-    try {
-      await fetchSettings();
-      const turnOff = !!current.showBreaking;
-      if (turnOff && !confirm("Hide the breaking news bar for everyone on the website?")) { paintBreaking(); st.textContent = ""; return; }
-      st.textContent = "Saving...";
-      await writeSettings(Object.assign({}, current, { showBreaking: !turnOff }), turnOff ? "Turn off breaking news bar" : "Turn on breaking news bar");
-      paintBreaking(); st.textContent = turnOff ? "Turned off. The website updates in a minute or two." : "Turned on. The website updates in a minute or two.";
-    } catch (err) { st.className = "status status--error"; st.textContent = err.message; paintBreaking(); }
-  });
   $("settings-save").addEventListener("click", async () => {
     saySet("Saving...");
     try {
-      await fetchSettings();
       const d = $("set-date").value || DEFAULTS.electionDate.slice(0, 16);
-      await writeSettings(Object.assign({}, current, { showCountdown: $("set-countdown").checked, electionLabel: $("set-label").value.trim() || DEFAULTS.electionLabel, electionDate: d + ":00+03:00" }), "Update site settings");
-      saySet("Saved. The live site updates in a minute or two.");
+      const out = { showBreaking: $("set-breaking").checked, showCountdown: $("set-countdown").checked, electionLabel: $("set-label").value.trim() || DEFAULTS.electionLabel, electionDate: d + ":00+03:00" };
+      const body = { message: "Update site settings", content: b64(JSON.stringify(out, null, 2) + "\n"), branch: cfg.branch };
+      if (settingsSha) body.sha = settingsSha;
+      const j = await gh("data/settings.json", { method: "PUT", body: JSON.stringify(body) });
+      settingsSha = j.content.sha; saySet("Saved. The live site updates in a minute or two.");
     } catch (err) { saySet(err.message, true); }
   });
 

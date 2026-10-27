@@ -304,8 +304,9 @@ a.chip:hover { background: var(--color-cobalt); color: #fff; }
 .cookie-btn--ghost { background: transparent; color: #fff; }
 .cookie-btn:hover { background: var(--color-signal); border-color: var(--color-signal); color: var(--color-ink); }
 
-/* Election countdown strip */
+/* Election countdown strip and breaking-news button */
 .election-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 22px; padding: 7px 5vw; background: #071A52; color: #fff; border-top: 4px solid; border-image: linear-gradient(90deg, #111 0 33.3%, #BB0000 33.3% 66.6%, #0B7A3B 66.6% 100%) 1; font-size: .86rem; }
+.election-bar--solo { justify-content: flex-end; }
 .election-bar__label { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; margin: 0; }
 .election-bar__title { font: 800 .95rem var(--font-head); letter-spacing: .01em; }
 .election-bar__date { color: #A9B8DD; }
@@ -314,6 +315,10 @@ a.chip:hover { background: var(--color-cobalt); color: #fff; }
 .cd__num { font: 800 1.15rem/1.2 var(--font-head); color: var(--color-signal, #FFC247); font-variant-numeric: tabular-nums; }
 .cd__lbl { font-style: normal; font-size: .75rem; color: #CFE0FF; }
 .cd--today { color: var(--color-signal, #FFC247); font-weight: 800; }
+.election-bar__toggle { padding: 4px 14px; border: 1.5px solid rgba(255,255,255,.55); border-radius: 999px; background: transparent; color: #fff; font: 600 .8rem var(--font-body); cursor: pointer; }
+.election-bar__toggle:hover { background: rgba(255,255,255,.14); }
+html.ticker-off .breaking-bar { display: none; }
+html.ticker-off body { --bar-h: 0px; }
 @media (max-width: 760px) { .election-bar { justify-content: center; text-align: center; } .election-countdown { margin-left: 0; } .election-bar__label { justify-content: center; } }
 
 /* Story body: formatted text from the admin editor */

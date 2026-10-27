@@ -8,8 +8,8 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap"></noscript>
-<link rel="stylesheet" href="css/style.css?v=8">
-<link rel="stylesheet" href="css/admin.css?v=6">
+<link rel="stylesheet" href="css/style.css?v=7">
+<link rel="stylesheet" href="css/admin.css?v=5">
 </head>
 <body>
 <header id="site-header" class="site-header">
@@ -26,16 +26,6 @@
     <label class="field">Access token<input id="cfg-token" type="password" autocomplete="off" required></label>
     <button class="btn" type="submit">Save and connect</button>
   </form>
-
-  <section id="breaking-switch" class="panel switch-card" hidden>
-    <div class="switch-card__text">
-      <h2 class="panel__title">Breaking news bar</h2>
-      <p id="breaking-state" class="switch-card__state">Checking...</p>
-      <p class="panel__hint">Only the admin can change this. It applies to the whole website and goes live in a minute or two.</p>
-      <p id="breaking-status" class="status" role="status"></p>
-    </div>
-    <button id="breaking-toggle" class="btn" type="button" disabled>Turn off</button>
-  </section>
 
   <form id="composer" class="panel composer" hidden>
     <div id="edit-banner" class="edit-banner" hidden>
@@ -68,6 +58,7 @@
   <section id="settings-panel" class="panel" hidden>
     <h2 class="panel__title">Site settings</h2>
     <p class="panel__hint">Changes go live on the website in a minute or two.</p>
+    <label class="check"><input id="set-breaking" type="checkbox"> Show the breaking news bar on the website</label>
     <label class="check"><input id="set-countdown" type="checkbox"> Show the election countdown at the top</label>
     <div class="field-row">
       <label class="field">Countdown title<input id="set-label" placeholder="Kenya General Election"></label>
@@ -88,6 +79,6 @@
   </div>
 </footer>
 <script>document.getElementById("footer-year").textContent=new Date().getFullYear();</script>
-<script src="js/admin.js?v=6"></script>
+<script src="js/admin.js?v=5"></script>
 </body>
 </html>
