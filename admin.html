@@ -8,8 +8,8 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap"></noscript>
-<link rel="stylesheet" href="css/style.css?v=5">
-<link rel="stylesheet" href="css/admin.css?v=4">
+<link rel="stylesheet" href="css/style.css?v=8">
+<link rel="stylesheet" href="css/admin.css?v=6">
 </head>
 <body>
 <header id="site-header" class="site-header">
@@ -27,6 +27,16 @@
     <button class="btn" type="submit">Save and connect</button>
   </form>
 
+  <section id="breaking-switch" class="panel switch-card" hidden>
+    <div class="switch-card__text">
+      <h2 class="panel__title">Breaking news bar</h2>
+      <p id="breaking-state" class="switch-card__state">Checking...</p>
+      <p class="panel__hint">Only the admin can change this. It applies to the whole website and goes live in a minute or two.</p>
+      <p id="breaking-status" class="status" role="status"></p>
+    </div>
+    <button id="breaking-toggle" class="btn" type="button" disabled>Turn off</button>
+  </section>
+
   <form id="composer" class="panel composer" hidden>
     <div id="edit-banner" class="edit-banner" hidden>
       <p class="edit-banner__text">Editing story: <strong id="edit-title"></strong></p>
@@ -40,7 +50,11 @@
       <label class="pill"><input type="radio" name="post-type" value="breaking">Breaking line</label>
     </div>
     <div data-for="story">
-      <textarea id="post-body" class="composer__body" rows="7" placeholder="Write the story. Leave a blank line between paragraphs."></textarea>
+      <div id="story-editor" class="editor">
+        <div id="editor-toolbar" class="editor__toolbar" role="toolbar" aria-label="Text formatting"></div>
+        <div id="post-body" class="editor__page is-empty" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Story text" data-placeholder="Start writing your story here. Select text to make it bold, italic, underlined, a heading or a link."></div>
+        <div class="editor__status"><span id="word-count">0 words</span><span class="editor__hint">Ctrl+B bold, Ctrl+I italic, Ctrl+U underline, Ctrl+Z undo</span></div>
+      </div>
       <textarea id="post-summary" rows="2" class="composer__summary" placeholder="Short summary shown on the home page"></textarea>
       <div class="field-row"><label class="field">Category<select id="post-category"><option>News</option><option>Business</option><option>Sports</option></select></label>
       <label class="field">Author<input id="post-author" placeholder="Newsroom"></label></div>
@@ -50,6 +64,17 @@
     <label class="field" data-for="video" hidden>YouTube link<input id="post-video-url" placeholder="https://www.youtube.com/watch?v=..."></label>
     <div class="composer__foot"><p id="status" class="status" role="status"></p><button id="post-btn" class="btn" type="submit">Post</button></div>
   </form>
+
+  <section id="settings-panel" class="panel" hidden>
+    <h2 class="panel__title">Site settings</h2>
+    <p class="panel__hint">Changes go live on the website in a minute or two.</p>
+    <label class="check"><input id="set-countdown" type="checkbox"> Show the election countdown at the top</label>
+    <div class="field-row">
+      <label class="field">Countdown title<input id="set-label" placeholder="Kenya General Election"></label>
+      <label class="field">Election date and time (East Africa Time)<input id="set-date" type="datetime-local"></label>
+    </div>
+    <div class="composer__foot"><p id="settings-status" class="status" role="status"></p><button id="settings-save" class="btn" type="button">Save settings</button></div>
+  </section>
 
   <section id="posts-panel" class="panel" hidden>
     <h2 class="panel__title">Published posts</h2>
@@ -63,6 +88,6 @@
   </div>
 </footer>
 <script>document.getElementById("footer-year").textContent=new Date().getFullYear();</script>
-<script src="js/admin.js"></script>
+<script src="js/admin.js?v=6"></script>
 </body>
 </html>

@@ -1,6 +1,7 @@
 /* Generates every public page from data/posts.json:
      index.html (home, with the News stories below the top stories), business.html, sports.html, videos.html, about.html, contact.html,
-     stories/ID.html (one page per story) and sitemap.xml.
+     stories/TITLE-SLUG.html (one page per story, named after its title) and sitemap.xml.
+   Site switches (breaking bar on/off, election countdown) come from data/settings.json and are changed only from the admin page.
    Runs automatically on GitHub after every post or edit. Run locally with: node scripts/build.js */
 const fs = require("fs");
 const SITE = "https://vanywinner.co.ke";
@@ -8,6 +9,90 @@ const PHONE_SHOW = "+254 715 672 799", PHONE_TEL = "+254715672799", WHATSAPP = "
 const data = JSON.parse(fs.readFileSync("data/posts.json", "utf8"));
 data.articles = data.articles || []; data.videos = data.videos || []; data.breaking = data.breaking || [];
 const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+/* ---------- site settings (edited from the admin page) ---------- */
+let settings = { showBreaking: true, showCountdown: true, electionLabel: "Kenya General Election", electionDate: "2027-08-10T06:00:00+03:00" };
+try { settings = Object.assign(settings, JSON.parse(fs.readFileSync("data/settings.json", "utf8"))); } catch (e) {}
+
+/* ---------- story file names: the title, not a number ---------- */
+function slugify(title, id) {
+  const base = String(title || "").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
+    .replace(/&/g, " and ").replace(/['\u2019`]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  let slug = base.length > 80 ? base.slice(0, 80).replace(/-[^-]*$/, "") : base;
+  return slug || "story-" + String(id || Date.now()).slice(-6);
+}
+function assignSlugs() {
+  const used = new Set(); let changed = false;
+  for (const a of data.articles) if (a.slug) used.add(a.slug);
+  const seen = new Set();
+  for (const a of data.articles) {
+    if (!a.slug || seen.has(a.slug)) {
+      let s = slugify(a.title, a.id), n = 2, cand = s;
+      while (used.has(cand) || seen.has(cand)) cand = s + "-" + n++;
+      a.slug = cand; used.add(cand); changed = true;
+    }
+    seen.add(a.slug);
+  }
+  if (changed) fs.writeFileSync("data/posts.json", JSON.stringify(data, null, 2));
+}
+assignSlugs();
+const storyFile = (a) => `stories/${a.slug}.html`;
+
+/* ---------- rich text: keeps a safe set of formatting tags and drops everything else ---------- */
+const ALLOWED = new Set(["p", "br", "strong", "b", "em", "i", "u", "s", "strike", "h2", "h3", "h4", "ul", "ol", "li", "blockquote", "a", "span", "hr", "sub", "sup"]);
+const SIZES = new Set(["xx-small", "x-small", "small", "medium", "large", "x-large", "xx-large", "xxx-large"]);
+function safeStyle(tag, style) {
+  const out = [];
+  for (const decl of String(style || "").split(";")) {
+    const m = decl.match(/^\s*([a-z-]+)\s*:\s*([^;]+?)\s*$/i); if (!m) continue;
+    const k = m[1].toLowerCase(), v = m[2].toLowerCase();
+    if (k === "text-align" && /^(left|center|right|justify)$/.test(v)) out.push(`text-align:${v}`);
+    else if (tag === "span" && (k === "color" || k === "background-color") && /^(#[0-9a-f]{3,8}|rgb\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*\)|[a-z]{3,20})$/.test(v)) out.push(`${k}:${v}`);
+    else if (tag === "span" && k === "font-size" && SIZES.has(v)) out.push(`font-size:${v}`);
+  }
+  return out.join(";");
+}
+function sanitizeHtml(html) {
+  let src = String(html || "").replace(/<!--[\s\S]*?-->/g, "").replace(/<(script|style|iframe|object|embed|svg|math|noscript|template)\b[\s\S]*?<\/\1\s*>/gi, "");
+  const out = [], stack = [];
+  const re = /<(\/?)([a-zA-Z][a-zA-Z0-9]*)((?:\s+[^<>]*?)?)\s*(\/?)>|([^<]+)|(<)/g;
+  let m;
+  while ((m = re.exec(src))) {
+    if (m[5] !== undefined) { out.push(m[5].replace(/>/g, "&gt;")); continue; }
+    if (m[6] !== undefined) { out.push("&lt;"); continue; }
+    let tag = m[2].toLowerCase(); const closing = !!m[1];
+    if (tag === "div") tag = "p";
+    if (tag === "font") tag = "span";
+    if (tag === "b") tag = "strong"; if (tag === "i") tag = "em"; if (tag === "strike") tag = "s";
+    if (!ALLOWED.has(tag)) continue;
+    if (closing) {
+      const i = stack.lastIndexOf(tag);
+      if (i < 0) continue;
+      while (stack.length > i) out.push(`</${stack.pop()}>`);
+      continue;
+    }
+    if (/^(p|h2|h3|h4|ul|ol|blockquote|hr)$/.test(tag) && stack.includes("p")) { while (stack.length) { const t = stack.pop(); out.push(`</${t}>`); if (t === "p") break; } }
+    if (tag === "br" || tag === "hr") { out.push(`<${tag}>`); continue; }
+    const attrs = {}; String(m[3] || "").replace(/([a-zA-Z-]+)\s*=\s*("([^"]*)"|'([^']*)'|([^\s"'>]+))/g, (_, k, __, a, b, c) => { attrs[k.toLowerCase()] = a !== undefined ? a : b !== undefined ? b : c; return ""; });
+    let extra = "";
+    if (tag === "a") {
+      const h = String(attrs.href || "").trim().replace(/&amp;/g, "&");
+      if (!/^(https?:\/\/|mailto:)/i.test(h)) { continue; }
+      extra = ` href="${esc(h)}" target="_blank" rel="noopener noreferrer"`;
+    }
+    let st = safeStyle(tag, attrs.style);
+    if (m[2].toLowerCase() === "font") { const parts = []; if (attrs.color && /^#?[0-9a-z]{3,20}$/i.test(attrs.color)) parts.push("color:" + (/^[0-9a-f]{3,6}$/i.test(attrs.color) ? "#" : "") + attrs.color); st = [st].concat(parts).filter(Boolean).join(";"); }
+    if (st) extra += ` style="${st}"`;
+    out.push(`<${tag}${extra}>`); stack.push(tag);
+  }
+  while (stack.length) out.push(`</${stack.pop()}>`);
+  return out.join("").replace(/<p(?:\s[^>]*)?>(?:\s|&nbsp;|<br>)*<\/p>/g, "").trim();
+}
+const plainText = (html) => String(html || "").replace(/<(br|\/p|\/h[2-4]|\/li|\/blockquote)\s*\/?>/gi, " ").replace(/<[^>]+>/g, "").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/\s+/g, " ").trim();
+const isHtmlBody = (a) => a.format === "html" || /^\s*<(p|h[2-4]|ul|ol|blockquote|div)\b/i.test(a.body || "");
+const bodyHtml = (a) => isHtmlBody(a) ? sanitizeHtml(a.body) : (a.body || a.summary || "").split(/\n\s*\n/).map((p) => `<p>${esc(p)}</p>`).join("");
+const bodyPlain = (a) => isHtmlBody(a) ? plainText(a.body) : String(a.body || "");
+
 const isRemote = (u) => /^(https?:)?\/\//.test(u);
 
 /* each menu item is its own page; stories are listed on the page of their category */
@@ -51,7 +136,7 @@ async function makeResized(dir, width, quality) {
 async function makeThumbs() { if (!sharp) return; await makeResized("thumbs", 560, 72); await makeResized("hero", 900, 70); }
 
 /* ---------- card pieces (same markup as before) ---------- */
-const hrefOf = (a, root) => a.link || (a.id ? root + "stories/" + encodeURIComponent(a.id) + ".html" : "#");
+const hrefOf = (a, root) => a.link || (a.slug ? root + storyFile(a) : a.id ? root + "stories/" + encodeURIComponent(a.id) + ".html" : "#");
 const swapDir = (img, dir) => img.replace(/^images\//, `images/${dir}/`).replace(/\.[a-z0-9]+$/i, ".webp");
 function thumbHtml(a, root) {
   if (!a.image) return `<div class="thumb thumb--${esc(String(a.category).toLowerCase())}"></div>`;
@@ -104,7 +189,7 @@ async function makeHeroInline() {
 
 /* ---------- shared page frame: breaking ticker, header with the menu, search, footer ---------- */
 function breakingBar() {
-  if (!data.breaking.length) return "";
+  if (!settings.showBreaking || !data.breaking.length) return "";
   const group = `<div class="breaking-bar__group">${data.breaking.map((t) => `<span class="breaking-bar__item">${esc(t)}</span>`).join("")}</div>`;
   return `<div id="breaking-bar" class="breaking-bar" role="region" aria-label="Breaking news">
   <span class="breaking-bar__label"><i class="breaking-bar__dot"></i>Breaking News</span>
@@ -137,6 +222,24 @@ function headerHtml(root, active) {
 </form>
 `;
 }
+/* ---------- election countdown strip (sits above the breaking-news bar on every page) ---------- */
+function electionStrip() {
+  const target = new Date(settings.electionDate);
+  if (!settings.showCountdown || isNaN(target)) return "";
+  const ms = Math.max(0, target - Date.now());
+  const d = Math.floor(ms / 864e5), h = Math.floor(ms % 864e5 / 36e5), m = Math.floor(ms % 36e5 / 6e4);
+  const when = target.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric", timeZone: "Africa/Nairobi" });
+  return `<div id="election-bar" class="election-bar">
+  <p class="election-bar__label"><span class="election-bar__title">${esc(settings.electionLabel)}</span><span class="election-bar__date">${when}</span></p>
+  <div id="election-countdown" class="election-countdown" role="timer" aria-label="Time left until the election" data-target="${esc(settings.electionDate)}">
+    <span class="cd"><b class="cd__num" data-unit="days">${d}</b><i class="cd__lbl">days</i></span>
+    <span class="cd"><b class="cd__num" data-unit="hours">${String(h).padStart(2, "0")}</b><i class="cd__lbl">hours</i></span>
+    <span class="cd"><b class="cd__num" data-unit="minutes">${String(m).padStart(2, "0")}</b><i class="cd__lbl">minutes</i></span>
+  </div>
+</div>
+`;
+}
+
 const footerHtml = (root = "") => `<footer id="site-footer" class="site-footer">
   <div class="site-footer__inner">
     <p class="site-footer__copy">&copy; <span id="footer-year">${new Date().getFullYear()}</span> Vanywinner News &middot; Nairobi, Kenya &middot; vanywinner.co.ke</p>
@@ -153,7 +256,7 @@ const GA = `<!-- Google Analytics is loaded by js/consent.js only after the visi
 function minCss() {
   return fs.readFileSync("css/style.css", "utf8").replace(/\/\*[\s\S]*?\*\//g, "").replace(/\s+/g, " ").replace(/\s*([{};:,>])\s*/g, "$1").replace(/;}/g, "}");
 }
-const CSS_V = "6";
+const CSS_V = "8";
 
 /* one function builds the frame for every page */
 function layout(o) {
@@ -163,6 +266,7 @@ function layout(o) {
   const css = o.inlineCss ? `<style>${minCss()}</style>` : `<link rel="stylesheet" href="${root}css/style.css?v=${CSS_V}">`;
   const scripts = [`${root}js/site.js?v=${CSS_V}`, `${root}js/consent.js?v=${CSS_V}`].concat(o.scripts || []).map((s) => `<script src="${s}" defer></script>`).join("\n");
   const bar = o.story ? "" : breakingBar();
+  const strip = electionStrip();
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -188,7 +292,7 @@ ${GA}
 ${css}${o.head || ""}
 </head>
 <body${bar ? ' class="has-breaking"' : ""} data-root="${root}">
-${bar}${headerHtml(root, o.active)}
+${strip}${bar}${headerHtml(root, o.active)}
 ${o.main}
 
 ${o.after || ""}${footerHtml(root)}
@@ -390,20 +494,20 @@ function storyPages(urls, today) {
   fs.rmSync("stories", { recursive: true, force: true });
   fs.mkdirSync("stories");
   for (const a of data.articles) {
-    const url = `${SITE}/stories/${a.id}.html`;
-    const desc = (a.summary || a.body || "").slice(0, 160);
+    const file = storyFile(a);
+    const url = `${SITE}/${file}`;
+    const desc = (a.summary || bodyPlain(a)).replace(/\s+/g, " ").slice(0, 160);
     const img = a.image ? (isRemote(a.image) ? a.image : `${SITE}/${a.image}`) : `${SITE}/favicon.svg`;
     const dim = a.image && !isRemote(a.image) ? imageSize(a.image) : null;
     const dimAttrs = dim ? ` width="${dim.w}" height="${dim.h}"` : "";
-    const paras = (a.body || a.summary || "").split(/\n\s*\n/).map((p) => `<p>${esc(p)}</p>`).join("");
     const ld = JSON.stringify({
       "@context": "https://schema.org", "@type": "NewsArticle", headline: a.title, datePublished: a.date, dateModified: a.updated || a.date,
       author: { "@type": "Person", name: a.author }, image: img, mainEntityOfPage: url,
       publisher: { "@type": "Organization", name: "Vanywinner News", logo: { "@type": "ImageObject", url: SITE + "/favicon.svg" } }
     }).replace(/</g, "\\u003c");
     const cf = catFile(a.category);
-    writePage(`stories/${a.id}.html`, layout({
-      root: "../", path: `stories/${a.id}.html`, story: true, active: cf || "", ogType: "article", ogImage: img,
+    writePage(file, layout({
+      root: "../", path: file, story: true, active: cf || "", ogType: "article", ogImage: img,
       title: `${a.title} | Vanywinner News`, ogTitle: a.title, desc,
       head: `\n<script type="application/ld+json">${ld}</script>`,
       main: `<main id="story-page" class="story-page">
@@ -411,10 +515,20 @@ function storyPages(urls, today) {
   <h1 class="story-page__title">${esc(a.title)}</h1>${cf ? `<a class="chip" href="../${cf}">${esc(a.category)}</a>` : `<span class="chip">${esc(a.category)}</span>`}
   <p class="story-page__meta">By ${esc(a.author)}, ${esc(a.time)}</p>
   ${a.image ? `<img class="story-page__image" src="${isRemote(a.image) ? esc(a.image) : "../" + esc(a.image)}" alt="${esc(a.title)}"${dimAttrs} decoding="async">` : ""}
-  <div class="story-page__body">${paras}</div>
+  <div class="story-page__body">${bodyHtml(a)}</div>
 </main>`
     }));
     urls.push([url, (a.updated || a.date || today).slice(0, 10)]);
+    /* the old numeric address keeps working: it forwards to the title address */
+    if (a.id && String(a.id) !== a.slug) {
+      writePage(`stories/${a.id}.html`, `<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>${esc(a.title)} | Vanywinner News</title>
+<link rel="canonical" href="${url}">
+<meta http-equiv="refresh" content="0; url=${a.slug}.html">
+<script>location.replace(${JSON.stringify(a.slug + ".html")});</script>
+</head><body><p>This story has moved. <a href="${a.slug}.html">Read: ${esc(a.title)}</a></p></body></html>
+`);
+    }
   }
 }
 

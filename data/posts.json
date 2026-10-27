@@ -12,7 +12,12 @@
       "author": "Vanywinner KE",
       "time": "25 Oct, 13:37",
       "date": "2026-10-25T10:37:42.780Z",
+<<<<<<< Updated upstream
       "image": "images/1792924654665.jpg"
+=======
+      "image": "images/1792924654665.jpg",
+      "slug": "manchester-united-at-a-crossroads-will-bournemouth-clash-decide-michael"
+>>>>>>> Stashed changes
     },
     {
       "id": "1792835391152",
@@ -23,7 +28,8 @@
       "author": "Vanywinner KE",
       "time": "24 Oct, 12:49",
       "date": "2026-10-24T09:49:53.434Z",
-      "image": "images/1792835391152.jpg"
+      "image": "images/1792835391152.jpg",
+      "slug": "us-green-card-lottery-faces-fresh-uncertainty-as-lawmakers-push-to-scrap"
     },
     {
       "id": "1792753762543",
@@ -35,7 +41,8 @@
       "time": "23 Oct, 14:09",
       "date": "2026-10-23T11:09:24.583Z",
       "image": "images/1792753762543.jpg",
-      "updated": "2026-10-23T11:15:26.750Z"
+      "updated": "2026-10-23T11:15:26.750Z",
+      "slug": "trump-clashes-with-independent-journalist-during-heated-white-house-exchange"
     },
     {
       "id": "1792593209279",
@@ -46,7 +53,8 @@
       "author": "Vanywinner KE",
       "time": "21 Oct, 17:33",
       "date": "2026-10-21T14:33:33.163Z",
-      "image": "images/1792593209279.jpg"
+      "image": "images/1792593209279.jpg",
+      "slug": "sakaja-sacks-mosiria-days-after-declaring-nairobi-governorship-bid"
     },
     {
       "id": "1792063743442",
@@ -57,7 +65,8 @@
       "author": "Newsroom",
       "time": "15 Oct, 14:29",
       "date": "2026-10-15T11:29:06.547Z",
-      "image": "images/1792063743442.jpg"
+      "image": "images/1792063743442.jpg",
+      "slug": "meet-the-namuyomba-foundation"
     },
     {
       "id": "1791991832352",
@@ -68,7 +77,8 @@
       "author": "Newsroom",
       "time": "14 Oct, 18:30",
       "date": "2026-10-14T15:30:35.378Z",
-      "image": "images/1791991832352.jpg"
+      "image": "images/1791991832352.jpg",
+      "slug": "a-quarantined-relative-becomes-kenyas-second-ebola-patient"
     },
     {
       "id": "1791970830965",
@@ -79,7 +89,8 @@
       "author": "Newsroom",
       "time": "14 Oct, 12:40",
       "date": "2026-10-14T09:40:33.871Z",
-      "image": "images/1791970830965.jpg"
+      "image": "images/1791970830965.jpg",
+      "slug": "a-fight-that-never-ends"
     },
     {
       "id": "1791917484724",
@@ -90,7 +101,8 @@
       "author": "Newsroom",
       "time": "13 Oct, 21:51",
       "date": "2026-10-13T18:51:27.419Z",
-      "image": "images/1791917484724.jpg"
+      "image": "images/1791917484724.jpg",
+      "slug": "meet-yesu-wa-bombolulu"
     },
     {
       "id": "1791892187972",
@@ -101,7 +113,8 @@
       "author": "Newsroom",
       "time": "13 Oct, 14:49",
       "date": "2026-10-13T11:49:52.317Z",
-      "image": "images/1791892187972.jpg"
+      "image": "images/1791892187972.jpg",
+      "slug": "ruto-promises-roads-power-and-a-higher-milk-price-in-elgeyo-marakwet"
     },
     {
       "id": "1791886745550",
@@ -112,7 +125,8 @@
       "author": "Newsroom",
       "time": "13 Oct, 13:19",
       "date": "2026-10-13T10:19:08.380Z",
-      "image": "images/1791886745550.jpg"
+      "image": "images/1791886745550.jpg",
+      "slug": "mosiria-enters-nairobi-governor-race-vows-to-fix-the-city"
     },
     {
       "id": "1791876278369",
@@ -123,7 +137,8 @@
       "author": "Newsroom",
       "time": "13 Oct, 10:24",
       "date": "2026-10-13T07:24:41.279Z",
-      "image": "images/1791876278369.jpg"
+      "image": "images/1791876278369.jpg",
+      "slug": "carricks-struggling-united-head-to-madrid-seeking-a-lift-against-atletico"
     },
     {
       "id": "1791798603357",
@@ -134,7 +149,8 @@
       "author": "Newsroom",
       "time": "12 Oct, 12:50",
       "date": "2026-10-12T09:50:11.607Z",
-      "image": "images/1791798603357.jpg"
+      "image": "images/1791798603357.jpg",
+      "slug": "i-was-offered-running-mate-slot-methu-claims-goverment-camp-plot-to-split"
     },
     {
       "id": "1791791806916",
@@ -145,7 +161,8 @@
       "author": "Newsroom",
       "time": "12 Oct, 10:56",
       "date": "2026-10-12T07:56:49.117Z",
-      "image": "images/1791791806916.jpg"
+      "image": "images/1791791806916.jpg",
+      "slug": "ict-authority-opens-web-design-training-for-40-professionals-and-students"
     },
     {
       "id": "1791791241013",
@@ -156,7 +173,8 @@
       "author": "Newsroom",
       "time": "12 Oct, 10:47",
       "date": "2026-10-12T07:47:24.398Z",
-      "image": "images/1791791241013.jpg"
+      "image": "images/1791791241013.jpg",
+      "slug": "ex-kdf-soldier-patrick-osoi-eyes-state-house-after-terror-charges-bail-and-a"
     },
     {
       "id": "1791704011463",
@@ -168,7 +186,8 @@
       "time": "11 Oct, 10:33",
       "date": "2026-10-11T07:33:33.525Z",
       "image": "images/1791704011463-1791704255577.jpg",
-      "updated": "2026-10-11T07:37:37.446Z"
+      "updated": "2026-10-11T07:37:37.446Z",
+      "slug": "rutos-buffalo-plan-is-old-news-kenya-has-been-planning-this-since-2018"
     },
     {
       "id": "1791663989036",
@@ -179,7 +198,8 @@
       "author": "Newsroom",
       "time": "10 Oct, 23:26",
       "date": "2026-10-10T20:26:32.282Z",
-      "image": "images/1791663989036.jpg"
+      "image": "images/1791663989036.jpg",
+      "slug": "ronaldo-shown-the-touchline-by-portugal-while-officials-weigh-his-fate"
     },
     {
       "id": "1791618490381",
@@ -190,7 +210,8 @@
       "author": "Sports Desk",
       "time": "10 Oct, 10:48",
       "date": "2026-10-10T07:48:15.086Z",
-      "image": "images/1791618490381.jpg"
+      "image": "images/1791618490381.jpg",
+      "slug": "old-trafford-showdown-man-united-and-tottenham-seek-a-lift-tonight"
     },
     {
       "id": "1791617126374",
@@ -201,7 +222,8 @@
       "author": "Newsroom",
       "time": "10 Oct, 10:25",
       "date": "2026-10-10T07:25:28.142Z",
-      "image": "images/1791617126374.jpg"
+      "image": "images/1791617126374.jpg",
+      "slug": "changing-your-number-what-kenyas-plan-for-recycled-lines-means-for-you"
     },
     {
       "id": "1791532590453",
@@ -212,7 +234,8 @@
       "author": "Newsroom",
       "time": "9 Oct, 10:56",
       "date": "2026-10-09T07:56:32.595Z",
-      "image": "images/1791532590453.jpg"
+      "image": "images/1791532590453.jpg",
+      "slug": "ministry-of-health-issues-ebola-prevention-guidance-after-kenya-confirms-first"
     },
     {
       "id": "1791532008501",
@@ -223,7 +246,8 @@
       "author": "Newsroom",
       "time": "9 Oct, 10:46",
       "date": "2026-10-09T07:46:51.019Z",
-      "image": "images/1791532008501.jpg"
+      "image": "images/1791532008501.jpg",
+      "slug": "helb-clears-five-tuition-batches-as-students-await-upkeep-funds"
     },
     {
       "id": "1791527544101",
@@ -234,7 +258,8 @@
       "author": "Newsroom",
       "time": "9 Oct, 9:32",
       "date": "2026-10-09T06:32:26.126Z",
-      "image": "images/1791527544101.jpg"
+      "image": "images/1791527544101.jpg",
+      "slug": "harambee-starlets-run-riot-thrash-seychelles-11-0-in-olympic-qualifier"
     },
     {
       "id": "1791469928924",
@@ -245,7 +270,8 @@
       "author": "Newsroom",
       "time": "8 Oct, 17:32",
       "date": "2026-10-08T14:32:11.645Z",
-      "image": "images/1791469928924.jpg"
+      "image": "images/1791469928924.jpg",
+      "slug": "wamuchomba-quits-uda-says-she-will-defend-githunguri-seat-on-another-ticket"
     },
     {
       "id": "1791464721067",
@@ -256,7 +282,8 @@
       "author": "Newsroom",
       "time": "8 Oct, 16:05",
       "date": "2026-10-08T13:05:26.454Z",
-      "image": "images/1791464721067.jpg"
+      "image": "images/1791464721067.jpg",
+      "slug": "linda-mwananchi-says-there-is-some-light-in-party-rebrand-process"
     },
     {
       "id": "1791461703206",
@@ -267,7 +294,8 @@
       "author": "Newsroom",
       "time": "8 Oct, 15:15",
       "date": "2026-10-08T12:15:05.885Z",
-      "image": "images/1791461703206.jpg"
+      "image": "images/1791461703206.jpg",
+      "slug": "free-commuter-train-tickets-where-to-get-them-and-how-to-avoid-scams"
     },
     {
       "id": "1791445054944",
@@ -279,7 +307,8 @@
       "time": "8 Oct, 10:37",
       "date": "2026-10-08T07:37:38.480Z",
       "image": "images/1791445054944.jpg",
-      "updated": "2026-10-08T07:40:52.249Z"
+      "updated": "2026-10-08T07:40:52.249Z",
+      "slug": "messi-bids-farewell-to-argentina-with-a-goal-two-assists-and-a-win"
     },
     {
       "id": "1791392864165",
@@ -290,7 +319,8 @@
       "author": "Newsroom",
       "time": "7 Oct, 20:07",
       "date": "2026-10-07T17:07:51.815Z",
-      "image": "images/1791392864165.jpg"
+      "image": "images/1791392864165.jpg",
+      "slug": "speaker-wetangula-suspends-ndindi-nyoro-for-five-sittings-over-kpc-share-claims"
     },
     {
       "id": "1791378458903",
@@ -302,7 +332,8 @@
       "time": "7 Oct, 16:07",
       "date": "2026-10-07T13:07:38.903Z",
       "image": "images/1791378458903-1791378686463.jpg",
-      "updated": "2026-10-07T13:11:28.742Z"
+      "updated": "2026-10-07T13:11:28.742Z",
+      "slug": "pedro-rodriguez-retires-from-football-at-39"
     },
     {
       "id": "1791315456509",
@@ -313,7 +344,8 @@
       "author": "Newsroom",
       "time": "6 Oct, 22:37",
       "date": "2026-10-06T19:37:40.791Z",
-      "image": "images/1791315456509.jpg"
+      "image": "images/1791315456509.jpg",
+      "slug": "kibabii-university-closed-indefinitely-after-student-dies-in-night-attack"
     },
     {
       "id": "1791311510798",
@@ -324,7 +356,8 @@
       "author": "Newsroom",
       "time": "6 Oct, 21:31",
       "date": "2026-10-06T18:31:53.866Z",
-      "image": "images/1791311510798.jpg"
+      "image": "images/1791311510798.jpg",
+      "slug": "kenya-confirms-first-ebola-case-as-patient-who-travelled-from-drc-dies-in"
     },
     {
       "id": "1791208993314",
@@ -335,7 +368,8 @@
       "author": "Newsroom",
       "time": "5 Oct, 17:03",
       "date": "2026-10-05T14:03:16.531Z",
-      "image": "images/1791208993314.jpg"
+      "image": "images/1791208993314.jpg",
+      "slug": "ruto-promises-teachers-housing-check-off-50-000-promotions-and-20-000-permanent"
     },
     {
       "id": "1791206006686",
@@ -346,7 +380,8 @@
       "author": "Newsroom",
       "time": "5 Oct, 16:13",
       "date": "2026-10-05T13:13:30.452Z",
-      "image": "images/1791206006686.jpg"
+      "image": "images/1791206006686.jpg",
+      "slug": "from-raw-data-to-real-insights-how-data-analysis-works"
     },
     {
       "id": "1791130800687",
@@ -357,7 +392,8 @@
       "author": "Newsroom",
       "time": "4 Oct, 19:20",
       "date": "2026-10-04T16:20:03.147Z",
-      "image": "images/1791130800687.jpg"
+      "image": "images/1791130800687.jpg",
+      "slug": "sifuna-unveils-the-equitable-party-says-it-will-become-linda-mwananchi-and"
     },
     {
       "id": "1791113910042",
@@ -368,7 +404,8 @@
       "author": "Newsroom",
       "time": "4 Oct, 14:38",
       "date": "2026-10-04T11:38:32.711Z",
-      "image": "images/1791113910042.jpg"
+      "image": "images/1791113910042.jpg",
+      "slug": "gachagua-alleges-late-zimbabwean-tycoon-chivayo-held-ksh1-5-trillion-for-ruto"
     },
     {
       "id": "1791111816177",
@@ -379,7 +416,8 @@
       "author": "Newsroom",
       "time": "4 Oct, 14:03",
       "date": "2026-10-04T11:03:38.370Z",
-      "image": "images/1791111816177.jpg"
+      "image": "images/1791111816177.jpg",
+      "slug": "why-every-business-needs-a-website-from-the-roadside-shop-to-the-growing-company"
     },
     {
       "id": "1791095312685",
@@ -390,7 +428,8 @@
       "author": "Newsroom",
       "time": "4 Oct, 9:28",
       "date": "2026-10-04T06:28:35.047Z",
-      "image": "images/1791095312685.jpg"
+      "image": "images/1791095312685.jpg",
+      "slug": "opposition-chiefs-vow-to-field-one-candidate-at-karua-family-burial"
     },
     {
       "id": "1791057586807",
@@ -400,7 +439,8 @@
       "body": "Uganda's Chief of Defence Forces, General Muhoozi Kainerugaba, has openly backed President William Ruto's 2027 re-election bid. He made the declaration in a post on X on Friday, October 2, naming National Assembly Speaker Moses Wetang'ula as his political \"Mutume\" in Kenya. The word is understood in the context of the post to mean an emissary or representative. \n\nIn the post, he wrote that Wetang'ula would support Ruto's re-election and ended with the line \"Tunataka Second term,\" meaning \"we want a second term.\" Reports say Muhoozi clarified that his statements are not an official endorsement by the Ugandan government. The post also did not indicate that Wetang'ula had received any formal appointment or role in Ruto's campaign. \nRegional intrigue as Uganda’s Military Chief Gen. Muhoozi backs Ruto for 2027 re-election +2\n\nWetang'ula has been stepping up his own mobilisation for Ruto. He said he reminded people in the region that he was once a fierce defender of Raila Odinga, and this time urged them to rally behind the president's bid and stay in the broad-based government. \npeopledaily\n\nMuhoozi is President Museveni's son and the head of the Ugandan army. He is widely seen as being groomed for the Ugandan presidency and is known for direct and controversial social media posts. In October 2022, shortly after Ruto took office, he caused a diplomatic row by suggesting on X that his forces could capture Nairobi in under two weeks. President Museveni apologised to Ruto and Kenya, and Muhoozi was later promoted to full general. \n\nObservers describe the latest post as an unusually direct intervention by a senior Ugandan military officer in a neighbouring country's election politics. It comes as Kenyan parties, emerging movements and individual politicians explore alliances aimed at making Ruto a one-term president. \n\nWe have not seen a response to the post from Ruto's office or the Kenyan government.",
       "author": "Newsroom",
       "time": "3 Oct, 22:59",
-      "date": "2026-10-03T19:59:46.807Z"
+      "date": "2026-10-03T19:59:46.807Z",
+      "slug": "ugandas-army-chief-muhoozi-backs-ruto-for-a-second-term-and-names-wetangula-his"
     },
     {
       "id": "1791036009928",
@@ -411,7 +451,8 @@
       "author": "Newsroom",
       "time": "3 Oct, 17:00",
       "date": "2026-10-03T14:00:12.408Z",
-      "image": "images/1791036009928.jpg"
+      "image": "images/1791036009928.jpg",
+      "slug": "the-rise-of-edwin-sifuna-from-odm-secretary-general-to-opposition-presidential"
     },
     {
       "id": "1791012141933",
@@ -420,7 +461,8 @@
       "summary": "A headline circulating online quotes Rigathi Gachagua saying he once pledged to back President Ruto until 2032 but now expects to become president in 2027.",
       "body": "A statement attributed to former Deputy President Rigathi Gachagua is drawing attention online. According to a headline circulating on social media, he said he had promised to support President William Ruto until 2032 but now expects to be president in 2027.\n\nThe remark appears alongside a video on Gachagua's official Facebook page, captioned \"Through Partnership with the Diaspora, we shall bridge the gap on employment.\" The caption points to the diaspora and jobs as themes of the event. The exact wording of the quote, and where and when it was said, should be confirmed from the original video.\n\nGachagua announced on September 14, 2025, in Nyeri that he would run for president in 2027. By January 2026, as Democracy for the Citizens Party (DCP) leader, he was touring the Mt Kenya region and repeating that Ruto should serve only one term. In July 2026 he also said he would step aside for another candidate if that was what it took to unite the opposition and remove Ruto. \n'No lies, no false promises': Gachagua launches bid to unseat Ruto +2\n\nThe 2032 claim has been disputed before. During the 2022 campaign, Gachagua said his arrangement with Ruto was a five-year performance contract and that he had not agreed to back Ruto after his ten-year term. Later, a Mt Kenya politician, Mr Wamumbi, said he had personally advised Gachagua to submit to Ruto's presidency until 2032 before pursuing his own ambitions. \npeopledaily\nnation\n\nAllies of President Ruto have consistently downplayed opposition unification efforts, expressing confidence in the government's record and its prospects in 2027. \npeopledaily\n\nSource: Gachagua's official Facebook page and published reports.",
       "author": "Newsroom",
-      "time": "3 Oct, 10:22"
+      "time": "3 Oct, 10:22",
+      "slug": "gachagua-says-he-is-now-aiming-for-state-house-in-2027-after-earlier-talk-of"
     },
     {
       "id": "1791010564159",
@@ -430,7 +472,8 @@
       "body": "Nairobi's Kenyatta International Convention Centre (KICC) became a canvas for a light display honouring the late former Prime Minister Raila Odinga on Friday evening, while supporters in other parts of the country held remembrance events of their own.\n\nThe projection formed part of a countrywide candle-lighting led by the Orange Democratic Movement (ODM), which kicked off its October programme, named \"Mwezi wa Baba\", in memory of Raila, widely known as Baba.\n\nClips posted on ODM's official X account showed a glowing image of Raila circling the landmark tower, with the words \"Baba Raila Odinga\" displayed near the top of the building.\n\nSource: videos shared on ODM's official X account.",
       "author": "Newsroom",
       "time": "3 Oct, 9:56",
-      "image": "images/1791010564159.jpg"
+      "image": "images/1791010564159.jpg",
+      "slug": "kicc-lit-up-in-tribute-to-raila-odinga-as-odm-opens-mwezi-wa-baba"
     }
   ],
   "videos": [

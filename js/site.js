@@ -1,12 +1,35 @@
-/* Runs on every page: date and year, menu button, search, and the video player (on the Videos page). */
+/* Runs on every page: date and year, election countdown, menu button, search, and the video player (on the Videos page). */
 (function () {
   const $ = (id) => document.getElementById(id);
   const root = document.body.dataset.root || "";
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-  const href = (a) => a.link || (a.id ? root + "stories/" + encodeURIComponent(a.id) + ".html" : "#");
+  const href = (a) => a.link || (a.slug ? root + "stories/" + encodeURIComponent(a.slug) + ".html" : a.id ? root + "stories/" + encodeURIComponent(a.id) + ".html" : "#");
 
   if ($("today-date")) $("today-date").textContent = new Date().toLocaleDateString("en-KE", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
   if ($("footer-year")) $("footer-year").textContent = new Date().getFullYear();
+
+
+  /* election countdown: days, hours and minutes left, updated every second */
+  const cd = $("election-countdown");
+  if (cd) {
+    const target = new Date(cd.dataset.target).getTime();
+    const nums = { days: cd.querySelector('[data-unit="days"]'), hours: cd.querySelector('[data-unit="hours"]'), minutes: cd.querySelector('[data-unit="minutes"]') };
+    let done = false;
+    const set = (el, v) => { if (el.textContent !== v) el.textContent = v; };
+    const tick = () => {
+      const ms = target - Date.now();
+      if (ms <= 0) {
+        if (!done) { done = true; cd.innerHTML = '<span class="cd cd--today">Election day</span>'; }
+        if (ms < -864e5 * 2) { const bar = $("election-bar"), l = bar && bar.querySelector(".election-bar__label"); cd.hidden = true; if (l) l.hidden = true; }
+        return;
+      }
+      set(nums.days, String(Math.floor(ms / 864e5)));
+      set(nums.hours, String(Math.floor(ms % 864e5 / 36e5)).padStart(2, "0"));
+      set(nums.minutes, String(Math.floor(ms % 36e5 / 6e4)).padStart(2, "0"));
+    };
+    tick(); setInterval(tick, 1000);
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) tick(); });
+  }
 
   /* menu button on phones */
   $("menu-toggle").addEventListener("click", (e) => {

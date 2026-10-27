@@ -25,9 +25,17 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap"></noscript>
-<link rel="stylesheet" href="css/style.css?v=6">
+<link rel="stylesheet" href="css/style.css?v=8">
 </head>
 <body class="has-breaking" data-root="">
+<div id="election-bar" class="election-bar">
+  <p class="election-bar__label"><span class="election-bar__title">Kenya General Election</span><span class="election-bar__date">Tue, 10 Aug 2027</span></p>
+  <div id="election-countdown" class="election-countdown" role="timer" aria-label="Time left until the election" data-target="2027-08-10T06:00:00+03:00">
+    <span class="cd"><b class="cd__num" data-unit="days">286</b><i class="cd__lbl">days</i></span>
+    <span class="cd"><b class="cd__num" data-unit="hours">15</b><i class="cd__lbl">hours</i></span>
+    <span class="cd"><b class="cd__num" data-unit="minutes">29</b><i class="cd__lbl">minutes</i></span>
+  </div>
+</div>
 <div id="breaking-bar" class="breaking-bar" role="region" aria-label="Breaking news">
   <span class="breaking-bar__label"><i class="breaking-bar__dot"></i>Breaking News</span>
   <div class="breaking-bar__window"><div id="breaking-track" class="breaking-bar__track" style="animation-duration:25s"><div class="breaking-bar__group"><span class="breaking-bar__item">PSC opens application window for 6000 internship positions</span></div><div class="breaking-bar__group"><span class="breaking-bar__item">PSC opens application window for 6000 internship positions</span></div></div></div>
@@ -121,7 +129,7 @@
   </div>
 </footer>
 
-<script src="js/site.js?v=6" defer></script>
-<script src="js/consent.js?v=6" defer></script>
+<script src="js/site.js?v=8" defer></script>
+<script src="js/consent.js?v=8" defer></script>
 </body>
 </html>

@@ -303,3 +303,23 @@ a.chip:hover { background: var(--color-cobalt); color: #fff; }
 .cookie-btn { padding: 10px 20px; border: 2px solid #fff; border-radius: 999px; background: #fff; color: var(--color-navy); font: 700 .92rem var(--font-body); cursor: pointer; }
 .cookie-btn--ghost { background: transparent; color: #fff; }
 .cookie-btn:hover { background: var(--color-signal); border-color: var(--color-signal); color: var(--color-ink); }
+
+/* Election countdown strip */
+.election-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 22px; padding: 7px 5vw; background: #071A52; color: #fff; border-top: 4px solid; border-image: linear-gradient(90deg, #111 0 33.3%, #BB0000 33.3% 66.6%, #0B7A3B 66.6% 100%) 1; font-size: .86rem; }
+.election-bar__label { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; margin: 0; }
+.election-bar__title { font: 800 .95rem var(--font-head); letter-spacing: .01em; }
+.election-bar__date { color: #A9B8DD; }
+.election-countdown { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.cd { display: inline-flex; align-items: baseline; gap: 5px; padding: 3px 11px; border-radius: 8px; background: rgba(255,255,255,.11); }
+.cd__num { font: 800 1.15rem/1.2 var(--font-head); color: var(--color-signal, #FFC247); font-variant-numeric: tabular-nums; }
+.cd__lbl { font-style: normal; font-size: .75rem; color: #CFE0FF; }
+.cd--today { color: var(--color-signal, #FFC247); font-weight: 800; }
+@media (max-width: 760px) { .election-bar { justify-content: center; text-align: center; } .election-countdown { margin-left: 0; } .election-bar__label { justify-content: center; } }
+
+/* Story body: formatted text from the admin editor */
+.story-page__body h2, .story-page__body h3, .story-page__body h4 { margin: 1.5em 0 .5em; font-family: var(--font-head); line-height: 1.2; color: var(--color-navy); }
+.story-page__body h2 { font-size: 1.6rem; } .story-page__body h3 { font-size: 1.3rem; } .story-page__body h4 { font-size: 1.1rem; }
+.story-page__body ul, .story-page__body ol { margin: 0 0 1.1em; padding-left: 1.4em; font-size: 1.12rem; line-height: 1.7; }
+.story-page__body blockquote { margin: 1.2em 0; padding: .6em 1.1em; border-left: 5px solid var(--color-cobalt); background: var(--color-mist); border-radius: 0 12px 12px 0; font-size: 1.12rem; }
+.story-page__body a { color: var(--color-cobalt); text-decoration: underline; text-underline-offset: 3px; }
+.story-page__body hr { margin: 1.6em 0; border: 0; border-top: 2px solid var(--color-line); }

@@ -1,7 +1,7 @@
 name: Build static pages
 on:
   push:
-    paths: ["data/posts.json", "scripts/build.js", "css/style.css"]
+    paths: ["data/posts.json", "data/settings.json", "scripts/build.js", "css/style.css", "content/**"]
   workflow_dispatch:
 permissions:
   contents: write
@@ -19,5 +19,6 @@ jobs:
         run: |
           git config user.name "vanywinner-bot"
           git config user.email "bot@vanywinner.co.ke"
+          git rm -r -q --cached node_modules 2>/dev/null || true
           git add -A
           if ! git diff --cached --quiet; then git commit -m "Build static pages" && git push; fi
