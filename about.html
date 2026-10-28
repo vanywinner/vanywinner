@@ -37,15 +37,20 @@
 {"@context":"https://schema.org","@type":"NewsMediaOrganization","name":"Vanywinner News","alternateName":["Vanywinner","vanywinner.co.ke"],"url":"https://vanywinner.co.ke/","logo":"https://vanywinner.co.ke/favicon-192x192.png","email":"vanywinner@gmail.com","address":{"@type":"PostalAddress","addressLocality":"Nairobi","addressCountry":"KE"},"founder":{"@type":"Person","name":"Okhala Winslaus Ondwasi","email":"winslausokhala@gmail.com","url":"https://winslausokhala.github.io","sameAs":["https://winslausokhala.github.io","https://www.linkedin.com/in/winslaus-okhala-861024409"]}}
 </script>
 </head>
-<body data-root="">
+<body class="has-breaking" data-root="">
 <div id="election-bar" class="election-bar">
   <p class="election-bar__label"><span class="election-bar__title">Kenya General Election</span><span class="election-bar__date">Tue, 10 Aug 2027</span></p>
   <div id="election-countdown" class="election-countdown" role="timer" aria-label="Time left until the election" data-target="2027-08-10T06:00:00+03:00">
     <span class="cd"><b class="cd__num" data-unit="days">285</b><i class="cd__lbl">days</i></span>
     <span class="cd"><b class="cd__num" data-unit="hours">08</b><i class="cd__lbl">hours</i></span>
-    <span class="cd"><b class="cd__num" data-unit="minutes">59</b><i class="cd__lbl">minutes</i></span>
+    <span class="cd"><b class="cd__num" data-unit="minutes">42</b><i class="cd__lbl">minutes</i></span>
   </div>
-  
+  <button id="ticker-toggle" class="election-bar__toggle" type="button" aria-pressed="false">Hide breaking news</button>
+</div>
+<div id="breaking-bar" class="breaking-bar" role="region" aria-label="Breaking news">
+  <span class="breaking-bar__label"><i class="breaking-bar__dot"></i>Breaking News</span>
+  <div class="breaking-bar__window"><div id="breaking-track" class="breaking-bar__track" style="animation-duration:25s"><div class="breaking-bar__group"><span class="breaking-bar__item">Govt, Lecturers Agree Sh20bn Deal to End Strike; Signing Set for Friday</span></div><div class="breaking-bar__group"><span class="breaking-bar__item">Govt, Lecturers Agree Sh20bn Deal to End Strike; Signing Set for Friday</span></div></div></div>
+  <time id="today-date" class="breaking-bar__date"></time>
 </div>
 <header id="site-header" class="site-header">
   <a class="brand" href="./" aria-label="Vanywinner home">
