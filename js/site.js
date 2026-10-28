@@ -3,7 +3,7 @@
   const $ = (id) => document.getElementById(id);
   const root = document.body.dataset.root || "";
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-  const href = (a) => a.link || (a.slug ? root + "stories/" + encodeURIComponent(a.slug) + ".html" : a.id ? root + "stories/" + encodeURIComponent(a.id) + ".html" : "#");
+  const href = (a) => a.link || (a.slug ? root + "stories/" + encodeURIComponent(a.slug) : a.id ? root + "stories/" + encodeURIComponent(a.id) : "#");
 
   if ($("today-date")) $("today-date").textContent = new Date().toLocaleDateString("en-KE", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
   if ($("footer-year")) $("footer-year").textContent = new Date().getFullYear();

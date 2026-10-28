@@ -37,10 +37,14 @@
   }
 
   /* ---------- story file names come from the title ---------- */
+  /* same rule as scripts/build.js: whole words only, up to 110 characters, never ending on "and", "of", "the"... */
   function slugify(title) {
     const base = String(title || "").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
       .replace(/&/g, " and ").replace(/['\u2019`]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-    return base.length > 80 ? base.slice(0, 80).replace(/-[^-]*$/, "") : base;
+    if (base.length <= 110) return base;
+    let s = base.slice(0, 111); s = s.slice(0, s.lastIndexOf("-"));
+    while (/-(a|an|and|the|of|to|in|on|at|by|for|from|with|as|is|or|but|his|her|its|their|after|over)$/.test(s)) s = s.replace(/-[^-]*$/, "");
+    return s;
   }
   function uniqueSlug(title) {
     let s = slugify(title) || "story";

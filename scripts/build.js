@@ -14,12 +14,27 @@ const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": 
 let settings = { showBreaking: true, showCountdown: true, electionLabel: "Kenya General Election", electionDate: "2027-08-10T06:00:00+03:00" };
 try { settings = Object.assign(settings, JSON.parse(fs.readFileSync("data/settings.json", "utf8"))); } catch (e) {}
 
+/* ---------- housekeeping on titles ---------- */
+/* a headline pasted from Markdown can start with "#"; never show it */
+for (const a of data.articles) a.title = String(a.title || "").replace(/^[\s#]+/, "").replace(/\s+/g, " ").trim();
+/* warn (do not fail) when Markdown leaks into a story: **bold**, "## heading" or [text](link) typed into a plain box */
+const MD_LEAK = /\*\*[^*\n]+\*\*|^\s*(?:<p>)?#{1,6}\s+\S|\]\(https?:\/\//m;
+for (const a of data.articles) if (MD_LEAK.test(a.body || "") || MD_LEAK.test(a.summary || "")) console.warn(`WARNING: story "${a.title}" still contains raw Markdown (**, ## or [text](url)). Use the editor's formatting buttons instead.`);
+
 /* ---------- story file names: the title, not a number ---------- */
+/* Whole words only, up to SLUG_MAX characters, never ending on a dangling "and", "of", "the"... (keep js/admin.js in step) */
+const SLUG_MAX = 110;
+const SLUG_TAIL = /-(a|an|and|the|of|to|in|on|at|by|for|from|with|as|is|or|but|his|her|its|their|after|over)$/;
+function trimSlug(base) {
+  if (base.length <= SLUG_MAX) return base;
+  let s = base.slice(0, SLUG_MAX + 1); s = s.slice(0, s.lastIndexOf("-"));
+  while (SLUG_TAIL.test(s)) s = s.replace(/-[^-]*$/, "");
+  return s;
+}
 function slugify(title, id) {
   const base = String(title || "").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
     .replace(/&/g, " and ").replace(/['\u2019`]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-  let slug = base.length > 80 ? base.slice(0, 80).replace(/-[^-]*$/, "") : base;
-  return slug || "story-" + String(id || Date.now()).slice(-6);
+  return trimSlug(base) || "story-" + String(id || Date.now()).slice(-6);
 }
 function assignSlugs() {
   const used = new Set(); let changed = false;
@@ -37,6 +52,22 @@ function assignSlugs() {
 }
 assignSlugs();
 const storyFile = (a) => `stories/${a.slug}.html`;
+
+/* Public addresses carry no ".html" (GitHub Pages serves /about for about.html, and the old .html addresses keep working).
+   Files on disk keep their names. The home page is just "/". */
+const pretty = (p) => String(p).replace(/(^|\/)index\.html(?=$|[#?])/, "$1").replace(/\.html(?=$|[#?])/, "");
+const to = (root, file) => (root + pretty(file)) || "./";
+
+/* ---------- authors: a byline that names a real person links to their profile and is marked up as a Person.
+   Desk bylines such as "Newsroom" are marked up as the organisation, because they are not people. ---------- */
+const AUTHORS = {
+  "Okhala Winslaus Ondwasi": { url: SITE + "/about#about-founder", page: "about.html#about-founder", jobTitle: "Founder and editor",
+    sameAs: ["https://winslausokhala.github.io", "https://www.linkedin.com/in/winslaus-okhala-861024409"] }
+};
+const bylineHtml = (a, root) => { const p = AUTHORS[a.author]; return p ? `<a href="${esc(to(root, p.page))}" rel="author">${esc(a.author)}</a>` : esc(a.author); };
+const authorLd = (a) => { const p = AUTHORS[a.author]; return p
+  ? { "@type": "Person", name: a.author, url: p.url, jobTitle: p.jobTitle, sameAs: p.sameAs }
+  : { "@type": "Organization", name: "Vanywinner News", url: SITE + "/" }; };
 
 /* ---------- rich text: keeps a safe set of formatting tags and drops everything else ---------- */
 const ALLOWED = new Set(["p", "br", "strong", "b", "em", "i", "u", "s", "strike", "h2", "h3", "h4", "ul", "ol", "li", "blockquote", "a", "span", "hr", "sub", "sup"]);
@@ -136,7 +167,7 @@ async function makeResized(dir, width, quality) {
 async function makeThumbs() { if (!sharp) return; await makeResized("thumbs", 560, 72); await makeResized("hero", 900, 70); }
 
 /* ---------- card pieces (same markup as before) ---------- */
-const hrefOf = (a, root) => a.link || (a.slug ? root + storyFile(a) : a.id ? root + "stories/" + encodeURIComponent(a.id) + ".html" : "#");
+const hrefOf = (a, root) => a.link || (a.slug ? root + pretty(storyFile(a)) : a.id ? root + "stories/" + encodeURIComponent(a.id) : "#");
 const swapDir = (img, dir) => img.replace(/^images\//, `images/${dir}/`).replace(/\.[a-z0-9]+$/i, ".webp");
 function thumbHtml(a, root) {
   if (!a.image) return `<div class="thumb thumb--${esc(String(a.category).toLowerCase())}"></div>`;
@@ -202,10 +233,10 @@ function headerHtml(root, active) {
   const seen = new Set();
   const links = NAV.map(([label, file]) => {
     const on = file === active && !seen.has(file); seen.add(file);
-    return `<a class="main-nav__link${on ? " is-active" : ""}" href="${root}${file}"${on ? ' aria-current="page"' : ""}>${label}</a>`;
+    return `<a class="main-nav__link${on ? " is-active" : ""}" href="${to(root, file)}"${on ? ' aria-current="page"' : ""}>${label}</a>`;
   }).join("\n    ");
   return `<header id="site-header" class="site-header">
-  <a class="brand" href="${root}index.html" aria-label="Vanywinner home">
+  <a class="brand" href="${to(root, "index.html")}" aria-label="Vanywinner home">
     <img class="brand__logo" src="${root}favicon.svg" alt="" width="40" height="40">
     <span class="brand__name">Vanywinner<small>News</small></span>
   </a>
@@ -250,7 +281,7 @@ function electionStrip(hasBar) {
 const footerHtml = (root = "") => `<footer id="site-footer" class="site-footer">
   <div class="site-footer__inner">
     <p class="site-footer__copy">&copy; <span id="footer-year">${new Date().getFullYear()}</span> Vanywinner News &middot; Nairobi, Kenya &middot; vanywinner.co.ke</p>
-    <nav class="site-footer__legal" aria-label="Legal"><a href="${root}privacy.html">Privacy Policy</a><a href="${root}terms.html">Terms and Conditions</a><a href="${root}cookies.html">Cookie Policy</a><button type="button" class="site-footer__cookie" data-cookie-settings>Cookie settings</button></nav>
+    <nav class="site-footer__legal" aria-label="Legal"><a href="${to(root, "privacy.html")}">Privacy Policy</a><a href="${to(root, "terms.html")}">Terms and Conditions</a><a href="${to(root, "cookies.html")}">Cookie Policy</a><button type="button" class="site-footer__cookie" data-cookie-settings>Cookie settings</button></nav>
     <p class="site-footer__dev">Developed by <a href="https://wa.me/254715672799" target="_blank" rel="noopener noreferrer">Vanywinner Enterprises</a></p>
   </div>
 </footer>`;
@@ -264,12 +295,16 @@ function minCss() {
   return fs.readFileSync("css/style.css", "utf8").replace(/\/\*[\s\S]*?\*\//g, "").replace(/\s+/g, " ").replace(/\s*([{};:,>])\s*/g, "$1").replace(/;}/g, "}");
 }
 const CSS_V = "7";
+const DEFAULT_OG = SITE + "/og-default.png";
 
 /* one function builds the frame for every page */
 function layout(o) {
   const root = o.root || "";
-  const url = SITE + "/" + (o.path || "");
-  const ogImg = o.ogImage ? `\n<meta property="og:image" content="${o.ogImage}">\n<meta name="twitter:card" content="summary_large_image">` : "";
+  const url = SITE + "/" + pretty(o.path || "");
+  /* every page gets a share picture (WhatsApp, Facebook and X cannot show an SVG, so the fallback is a PNG) */
+  const ogImg = o.ogImage
+    ? `\n<meta property="og:image" content="${esc(o.ogImage)}">\n<meta name="twitter:card" content="summary_large_image">\n<meta name="twitter:image" content="${esc(o.ogImage)}">`
+    : `\n<meta property="og:image" content="${DEFAULT_OG}">\n<meta property="og:image:width" content="1200">\n<meta property="og:image:height" content="630">\n<meta property="og:image:alt" content="Vanywinner News: Kenya, Africa and the world">\n<meta name="twitter:card" content="summary_large_image">\n<meta name="twitter:image" content="${DEFAULT_OG}">`;
   const css = o.inlineCss ? `<style>${minCss()}</style>` : `<link rel="stylesheet" href="${root}css/style.css?v=${CSS_V}">`;
   const scripts = [`${root}js/site.js?v=${CSS_V}`, `${root}js/consent.js?v=${CSS_V}`].concat(o.scripts || []).map((s) => `<script src="${s}" defer></script>`).join("\n");
   const bar = o.story ? "" : breakingBar();
@@ -364,8 +399,8 @@ function newsRedirect() {
   fs.writeFileSync("news.html", `<!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><title>News | Vanywinner News</title>
 <meta name="robots" content="noindex"><link rel="canonical" href="${SITE}/">
-<meta http-equiv="refresh" content="0; url=index.html#news"><script>location.replace("index.html#news");</script></head>
-<body><p><a href="index.html#news">Go to the News section</a></p></body></html>
+<meta http-equiv="refresh" content="0; url=./#news"><script>location.replace("./#news");</script></head>
+<body><p><a href="./#news">Go to the News section</a></p></body></html>
 `);
 }
 
@@ -503,15 +538,15 @@ function storyPages(urls, today) {
   fs.mkdirSync("stories");
   for (const a of data.articles) {
     const file = storyFile(a);
-    const url = `${SITE}/${file}`;
+    const url = `${SITE}/${pretty(file)}`;
     const desc = (a.summary || bodyPlain(a)).replace(/\s+/g, " ").slice(0, 160);
-    const img = a.image ? (isRemote(a.image) ? a.image : `${SITE}/${a.image}`) : `${SITE}/favicon.svg`;
+    const img = a.image ? (isRemote(a.image) ? a.image : `${SITE}/${a.image}`) : DEFAULT_OG;
     const dim = a.image && !isRemote(a.image) ? imageSize(a.image) : null;
     const dimAttrs = dim ? ` width="${dim.w}" height="${dim.h}"` : "";
     const ld = JSON.stringify({
       "@context": "https://schema.org", "@type": "NewsArticle", headline: a.title, datePublished: a.date, dateModified: a.updated || a.date,
-      author: { "@type": "Person", name: a.author }, image: img, mainEntityOfPage: url,
-      publisher: { "@type": "Organization", name: "Vanywinner News", logo: { "@type": "ImageObject", url: SITE + "/favicon.svg" } }
+      author: authorLd(a), image: img, mainEntityOfPage: url,
+      publisher: { "@type": "Organization", name: "Vanywinner News", logo: { "@type": "ImageObject", url: SITE + "/favicon-192x192.png" } }
     }).replace(/</g, "\\u003c");
     const cf = catFile(a.category);
     writePage(file, layout({
@@ -519,22 +554,23 @@ function storyPages(urls, today) {
       title: `${a.title} | Vanywinner News`, ogTitle: a.title, desc,
       head: `\n<script type="application/ld+json">${ld}</script>`,
       main: `<main id="story-page" class="story-page">
-  <a class="story-page__back" href="../index.html">Back to home</a>
-  <h1 class="story-page__title">${esc(a.title)}</h1>${cf ? `<a class="chip" href="../${cf}">${esc(a.category)}</a>` : `<span class="chip">${esc(a.category)}</span>`}
-  <p class="story-page__meta">By ${esc(a.author)}, ${esc(a.time)}</p>
+  <a class="story-page__back" href="../">Back to home</a>
+  <h1 class="story-page__title">${esc(a.title)}</h1>${cf ? `<a class="chip" href="${to("../", cf)}">${esc(a.category)}</a>` : `<span class="chip">${esc(a.category)}</span>`}
+  <p class="story-page__meta">By ${bylineHtml(a, "../")}, ${esc(a.time)}</p>
   ${a.image ? `<img class="story-page__image" src="${isRemote(a.image) ? esc(a.image) : "../" + esc(a.image)}" alt="${esc(a.title)}"${dimAttrs} decoding="async">` : ""}
   <div class="story-page__body">${bodyHtml(a)}</div>
 </main>`
     }));
     urls.push([url, (a.updated || a.date || today).slice(0, 10)]);
-    /* the old numeric address keeps working: it forwards to the title address */
-    if (a.id && String(a.id) !== a.slug) {
-      writePage(`stories/${a.id}.html`, `<!DOCTYPE html>
+    /* the old numeric address, and any earlier title address (a.oldSlugs), keep working: they forward to the current address */
+    const moved = [a.id, ...(a.oldSlugs || [])].filter((o) => o && String(o) !== a.slug);
+    for (const old of moved) {
+      writePage(`stories/${old}.html`, `<!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><title>${esc(a.title)} | Vanywinner News</title>
 <link rel="canonical" href="${url}">
-<meta http-equiv="refresh" content="0; url=${a.slug}.html">
-<script>location.replace(${JSON.stringify(a.slug + ".html")});</script>
-</head><body><p>This story has moved. <a href="${a.slug}.html">Read: ${esc(a.title)}</a></p></body></html>
+<meta http-equiv="refresh" content="0; url=${a.slug}">
+<script>location.replace(${JSON.stringify(a.slug)});</script>
+</head><body><p>This story has moved. <a href="${a.slug}">Read: ${esc(a.title)}</a></p></body></html>
 `);
     }
   }
@@ -564,7 +600,7 @@ async function main() {
   if (lost.length) console.warn(`WARNING: ${lost.length} story(ies) have a category without a page: ${[...new Set(lost.map((a) => a.category))].join(", ")}`);
   fs.writeFileSync("sitemap.xml", `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls.map(([u, d]) => `  <url><loc>${u}</loc><lastmod>${d}</lastmod></url>`).join("\n")}
+${urls.map(([u, d]) => `  <url><loc>${pretty(u)}</loc><lastmod>${d}</lastmod></url>`).join("\n")}
 </urlset>
 `);
   console.log(`Built home, ${counts.join(", ")}, ${data.videos.length} videos, about, contact, privacy, terms, cookies, ${data.articles.length} story pages and sitemap.xml`);

@@ -53,7 +53,7 @@
       b.innerHTML =
         '<p class="cookie-banner__text">We use cookies to understand how readers use Vanywinner News and, in future, to show ads. ' +
         'Choose <strong>Accept all</strong> to allow analytics, or <strong>Essential only</strong> to decline. ' +
-        'Read our <a href="' + root + 'cookies.html">Cookie Policy</a> and <a href="' + root + 'privacy.html">Privacy Policy</a>.</p>' +
+        'Read our <a href="' + root + 'cookies">Cookie Policy</a> and <a href="' + root + 'privacy">Privacy Policy</a>.</p>' +
         '<div class="cookie-banner__actions">' +
         '<button type="button" class="cookie-btn cookie-btn--ghost" data-consent="essential">Essential only</button>' +
         '<button type="button" class="cookie-btn" data-consent="all">Accept all</button></div>';
