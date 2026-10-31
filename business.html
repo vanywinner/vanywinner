@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>try{if(localStorage.getItem("vw_ticker")==="off")document.documentElement.classList.add("ticker-off")}catch(e){}</script>
 <!-- Google Analytics is loaded by js/consent.js only after the visitor accepts cookies -->
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -12,18 +11,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Business | Vanywinner News</title>
 <meta name="description" content="Business stories from Vanywinner News: Kenya, Africa and the world.">
-<link rel="canonical" href="https://vanywinner.co.ke/business">
+<link rel="canonical" href="https://vanywinner.co.ke/business.html">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Vanywinner News">
 <meta property="og:title" content="Business | Vanywinner News">
 <meta property="og:description" content="Business stories from Vanywinner News: Kenya, Africa and the world.">
-<meta property="og:url" content="https://vanywinner.co.ke/business">
-<meta property="og:image" content="https://vanywinner.co.ke/og-default.png">
+<meta property="og:url" content="https://vanywinner.co.ke/business.html">
+<meta property="og:image" content="https://vanywinner.co.ke/images/og-default.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Vanywinner News: Kenya, Africa and the world">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://vanywinner.co.ke/og-default.png">
+<meta name="robots" content="index, follow, max-image-preview:large">
 <link rel="icon" href="favicon.ico" sizes="48x48">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="icon" href="favicon-96x96.png" sizes="96x96" type="image/png">
@@ -32,17 +30,16 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap"></noscript>
-<link rel="stylesheet" href="css/style.css?v=7">
+<link rel="stylesheet" href="css/style.css?v=8">
 </head>
 <body class="has-breaking" data-root="">
 <div id="election-bar" class="election-bar">
   <p class="election-bar__label"><span class="election-bar__title">Kenya General Election</span><span class="election-bar__date">Tue, 10 Aug 2027</span></p>
   <div id="election-countdown" class="election-countdown" role="timer" aria-label="Time left until the election" data-target="2027-08-10T06:00:00+03:00">
-    <span class="cd"><b class="cd__num" data-unit="days">283</b><i class="cd__lbl">days</i></span>
-    <span class="cd"><b class="cd__num" data-unit="hours">17</b><i class="cd__lbl">hours</i></span>
-    <span class="cd"><b class="cd__num" data-unit="minutes">00</b><i class="cd__lbl">minutes</i></span>
+    <span class="cd"><b class="cd__num" data-unit="days">282</b><i class="cd__lbl">days</i></span>
+    <span class="cd"><b class="cd__num" data-unit="hours">15</b><i class="cd__lbl">hours</i></span>
+    <span class="cd"><b class="cd__num" data-unit="minutes">59</b><i class="cd__lbl">minutes</i></span>
   </div>
-  <button id="ticker-toggle" class="election-bar__toggle" type="button" aria-pressed="false">Hide breaking news</button>
 </div>
 <div id="breaking-bar" class="breaking-bar" role="region" aria-label="Breaking news">
   <span class="breaking-bar__label"><i class="breaking-bar__dot"></i>Breaking News</span>
@@ -50,17 +47,18 @@
   <time id="today-date" class="breaking-bar__date"></time>
 </div>
 <header id="site-header" class="site-header">
-  <a class="brand" href="./" aria-label="Vanywinner home">
+  <a class="brand" href="index.html" aria-label="Vanywinner home">
     <img class="brand__logo" src="favicon.svg" alt="" width="40" height="40">
     <span class="brand__name">Vanywinner<small>News</small></span>
   </a>
   <nav id="main-nav" class="main-nav" aria-label="Main">
-    <a class="main-nav__link" href="./">Home</a>
-    <a class="main-nav__link is-active" href="business" aria-current="page">Business</a>
-    <a class="main-nav__link" href="sports">Sports</a>
-    <a class="main-nav__link" href="videos">Videos</a>
-    <a class="main-nav__link" href="about">About</a>
-    <a class="main-nav__link" href="contact">Contact</a>
+    <a class="main-nav__link" href="index.html">Home</a>
+    <a class="main-nav__link is-active" href="business.html" aria-current="page">Business</a>
+    <a class="main-nav__link" href="sports.html">Sports</a>
+    <a class="main-nav__link" href="opinion.html">Opinion</a>
+    <a class="main-nav__link" href="videos.html">Videos</a>
+    <a class="main-nav__link" href="about.html">About</a>
+    <a class="main-nav__link" href="contact.html">Contact</a>
   </nav>
   <button id="search-toggle" class="icon-btn" type="button" aria-label="Search stories">Search</button>
   <button id="menu-toggle" class="icon-btn icon-btn--menu" type="button" aria-label="Open menu" aria-expanded="false">Menu</button>
@@ -75,22 +73,23 @@
   <section id="business" class="category-section">
     <h1 class="section-title">Business</h1>
     <p class="section-count">6 stories</p>
-    <div class="card-grid"><article class="story-card"><a class="story-card__link" href="stories/kenyan-national-indicted-in-us-over-20-000-student-aid-fraud-scheme">
+    
+    <div class="card-grid"><article class="story-card"><a class="story-card__link" href="stories/kenyan-national-indicted-in-us-over-20-000-student-aid-fraud-scheme.html">
       <img class="thumb" src="images/thumbs/1793352802536.webp" onerror="this.onerror=null;this.src='images/1793352802536.jpg'" alt="" loading="lazy" decoding="async"><span class="chip">Business</span>
       <h3 class="story-card__title">Kenyan National Indicted in US Over $20,000 Student Aid Fraud Scheme</h3>
-      <p class="story-card__meta">By Vanywinner KE, 30 Oct, 12:33</p></a></article><article class="story-card"><a class="story-card__link" href="stories/full-story-behind-safaricoms-sacking-of-118-employees-over-fraud">
+      <p class="story-card__meta">By Vanywinner KE, 30 Oct, 12:33</p></a></article><article class="story-card"><a class="story-card__link" href="stories/full-story-behind-safaricoms-sacking-of-118-employees-over-fraud.html">
       <img class="thumb" src="images/thumbs/1793168253997.webp" onerror="this.onerror=null;this.src='images/1793168253997.jpg'" alt="" loading="lazy" decoding="async"><span class="chip">Business</span>
       <h3 class="story-card__title">Full Story Behind Safaricom’s Sacking of 118 Employees Over Fraud</h3>
-      <p class="story-card__meta">By Vanywinner KE, 28 Oct, 9:17</p></a></article><article class="story-card"><a class="story-card__link" href="stories/us-green-card-lottery-faces-fresh-uncertainty-as-lawmakers-push-to-scrap-programme">
+      <p class="story-card__meta">By Vanywinner KE, 28 Oct, 9:17</p></a></article><article class="story-card"><a class="story-card__link" href="stories/us-green-card-lottery-faces-fresh-uncertainty-as-lawmakers-push-to-scrap-programme.html">
       <img class="thumb" src="images/thumbs/1792835391152.webp" onerror="this.onerror=null;this.src='images/1792835391152.jpg'" alt="" loading="lazy" decoding="async"><span class="chip">Business</span>
       <h3 class="story-card__title">US Green Card Lottery Faces Fresh Uncertainty as Lawmakers Push to Scrap Programme</h3>
-      <p class="story-card__meta">By Vanywinner KE, 24 Oct, 12:49</p></a></article><article class="story-card"><a class="story-card__link" href="stories/ict-authority-opens-web-design-training-for-40-professionals-and-students">
+      <p class="story-card__meta">By Vanywinner KE, 24 Oct, 12:49</p></a></article><article class="story-card"><a class="story-card__link" href="stories/ict-authority-opens-web-design-training-for-40-professionals-and-students.html">
       <img class="thumb" src="images/thumbs/1791791806916.webp" onerror="this.onerror=null;this.src='images/1791791806916.jpg'" alt="" loading="lazy" decoding="async"><span class="chip">Business</span>
       <h3 class="story-card__title">ICT Authority Opens Web Design Training for 40 Professionals and Students</h3>
-      <p class="story-card__meta">By Newsroom, 12 Oct, 10:56</p></a></article><article class="story-card"><a class="story-card__link" href="stories/from-raw-data-to-real-insights-how-data-analysis-works">
+      <p class="story-card__meta">By Newsroom, 12 Oct, 10:56</p></a></article><article class="story-card"><a class="story-card__link" href="stories/from-raw-data-to-real-insights-how-data-analysis-works.html">
       <img class="thumb" src="images/thumbs/1791206006686.webp" onerror="this.onerror=null;this.src='images/1791206006686.jpg'" alt="" loading="lazy" decoding="async"><span class="chip">Business</span>
       <h3 class="story-card__title">From Raw Data to Real Insights: How Data Analysis Works</h3>
-      <p class="story-card__meta">By Newsroom, 5 Oct, 16:13</p></a></article><article class="story-card"><a class="story-card__link" href="stories/why-every-business-needs-a-website-from-the-roadside-shop-to-the-growing-company">
+      <p class="story-card__meta">By Newsroom, 5 Oct, 16:13</p></a></article><article class="story-card"><a class="story-card__link" href="stories/why-every-business-needs-a-website-from-the-roadside-shop-to-the-growing-company.html">
       <img class="thumb" src="images/thumbs/1791111816177.webp" onerror="this.onerror=null;this.src='images/1791111816177.jpg'" alt="" loading="lazy" decoding="async"><span class="chip">Business</span>
       <h3 class="story-card__title">Why every business needs a website, from the roadside shop to the growing company</h3>
       <p class="story-card__meta">By Newsroom, 4 Oct, 14:03</p></a></article></div>
@@ -100,12 +99,12 @@
 <footer id="site-footer" class="site-footer">
   <div class="site-footer__inner">
     <p class="site-footer__copy">&copy; <span id="footer-year">2026</span> Vanywinner News &middot; Nairobi, Kenya &middot; vanywinner.co.ke</p>
-    <nav class="site-footer__legal" aria-label="Legal"><a href="privacy">Privacy Policy</a><a href="terms">Terms and Conditions</a><a href="cookies">Cookie Policy</a><button type="button" class="site-footer__cookie" data-cookie-settings>Cookie settings</button></nav>
+    <nav class="site-footer__legal" aria-label="Legal"><a href="privacy.html">Privacy Policy</a><a href="terms.html">Terms and Conditions</a><a href="cookies.html">Cookie Policy</a><a href="write-for-us.html">Write for us</a><button type="button" class="site-footer__cookie" data-cookie-settings>Cookie settings</button></nav>
     <p class="site-footer__dev">Developed by <a href="https://wa.me/254715672799" target="_blank" rel="noopener noreferrer">Vanywinner Enterprises</a></p>
   </div>
 </footer>
 
-<script src="js/site.js?v=7" defer></script>
-<script src="js/consent.js?v=7" defer></script>
+<script src="js/site.js?v=8" defer></script>
+<script src="js/consent.js?v=8" defer></script>
 </body>
 </html>

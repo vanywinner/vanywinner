@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>try{if(localStorage.getItem("vw_ticker")==="off")document.documentElement.classList.add("ticker-off")}catch(e){}</script>
 <!-- Google Analytics is loaded by js/consent.js only after the visitor accepts cookies -->
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -12,18 +11,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Videos | Vanywinner News</title>
 <meta name="description" content="Watch news videos, interviews and bulletins from Vanywinner News.">
-<link rel="canonical" href="https://vanywinner.co.ke/videos">
+<link rel="canonical" href="https://vanywinner.co.ke/videos.html">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Vanywinner News">
 <meta property="og:title" content="Videos | Vanywinner News">
 <meta property="og:description" content="Watch news videos, interviews and bulletins from Vanywinner News.">
-<meta property="og:url" content="https://vanywinner.co.ke/videos">
-<meta property="og:image" content="https://vanywinner.co.ke/og-default.png">
+<meta property="og:url" content="https://vanywinner.co.ke/videos.html">
+<meta property="og:image" content="https://vanywinner.co.ke/images/og-default.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Vanywinner News: Kenya, Africa and the world">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://vanywinner.co.ke/og-default.png">
+<meta name="robots" content="index, follow, max-image-preview:large">
 <link rel="icon" href="favicon.ico" sizes="48x48">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="icon" href="favicon-96x96.png" sizes="96x96" type="image/png">
@@ -32,17 +30,16 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap"></noscript>
-<link rel="stylesheet" href="css/style.css?v=7">
+<link rel="stylesheet" href="css/style.css?v=8">
 </head>
 <body class="has-breaking" data-root="">
 <div id="election-bar" class="election-bar">
   <p class="election-bar__label"><span class="election-bar__title">Kenya General Election</span><span class="election-bar__date">Tue, 10 Aug 2027</span></p>
   <div id="election-countdown" class="election-countdown" role="timer" aria-label="Time left until the election" data-target="2027-08-10T06:00:00+03:00">
-    <span class="cd"><b class="cd__num" data-unit="days">283</b><i class="cd__lbl">days</i></span>
-    <span class="cd"><b class="cd__num" data-unit="hours">17</b><i class="cd__lbl">hours</i></span>
-    <span class="cd"><b class="cd__num" data-unit="minutes">00</b><i class="cd__lbl">minutes</i></span>
+    <span class="cd"><b class="cd__num" data-unit="days">282</b><i class="cd__lbl">days</i></span>
+    <span class="cd"><b class="cd__num" data-unit="hours">15</b><i class="cd__lbl">hours</i></span>
+    <span class="cd"><b class="cd__num" data-unit="minutes">59</b><i class="cd__lbl">minutes</i></span>
   </div>
-  <button id="ticker-toggle" class="election-bar__toggle" type="button" aria-pressed="false">Hide breaking news</button>
 </div>
 <div id="breaking-bar" class="breaking-bar" role="region" aria-label="Breaking news">
   <span class="breaking-bar__label"><i class="breaking-bar__dot"></i>Breaking News</span>
@@ -50,17 +47,18 @@
   <time id="today-date" class="breaking-bar__date"></time>
 </div>
 <header id="site-header" class="site-header">
-  <a class="brand" href="./" aria-label="Vanywinner home">
+  <a class="brand" href="index.html" aria-label="Vanywinner home">
     <img class="brand__logo" src="favicon.svg" alt="" width="40" height="40">
     <span class="brand__name">Vanywinner<small>News</small></span>
   </a>
   <nav id="main-nav" class="main-nav" aria-label="Main">
-    <a class="main-nav__link" href="./">Home</a>
-    <a class="main-nav__link" href="business">Business</a>
-    <a class="main-nav__link" href="sports">Sports</a>
-    <a class="main-nav__link is-active" href="videos" aria-current="page">Videos</a>
-    <a class="main-nav__link" href="about">About</a>
-    <a class="main-nav__link" href="contact">Contact</a>
+    <a class="main-nav__link" href="index.html">Home</a>
+    <a class="main-nav__link" href="business.html">Business</a>
+    <a class="main-nav__link" href="sports.html">Sports</a>
+    <a class="main-nav__link" href="opinion.html">Opinion</a>
+    <a class="main-nav__link is-active" href="videos.html" aria-current="page">Videos</a>
+    <a class="main-nav__link" href="about.html">About</a>
+    <a class="main-nav__link" href="contact.html">Contact</a>
   </nav>
   <button id="search-toggle" class="icon-btn" type="button" aria-label="Search stories">Search</button>
   <button id="menu-toggle" class="icon-btn icon-btn--menu" type="button" aria-label="Open menu" aria-expanded="false">Menu</button>
@@ -98,12 +96,12 @@
 <footer id="site-footer" class="site-footer">
   <div class="site-footer__inner">
     <p class="site-footer__copy">&copy; <span id="footer-year">2026</span> Vanywinner News &middot; Nairobi, Kenya &middot; vanywinner.co.ke</p>
-    <nav class="site-footer__legal" aria-label="Legal"><a href="privacy">Privacy Policy</a><a href="terms">Terms and Conditions</a><a href="cookies">Cookie Policy</a><button type="button" class="site-footer__cookie" data-cookie-settings>Cookie settings</button></nav>
+    <nav class="site-footer__legal" aria-label="Legal"><a href="privacy.html">Privacy Policy</a><a href="terms.html">Terms and Conditions</a><a href="cookies.html">Cookie Policy</a><a href="write-for-us.html">Write for us</a><button type="button" class="site-footer__cookie" data-cookie-settings>Cookie settings</button></nav>
     <p class="site-footer__dev">Developed by <a href="https://wa.me/254715672799" target="_blank" rel="noopener noreferrer">Vanywinner Enterprises</a></p>
   </div>
 </footer>
 
-<script src="js/site.js?v=7" defer></script>
-<script src="js/consent.js?v=7" defer></script>
+<script src="js/site.js?v=8" defer></script>
+<script src="js/consent.js?v=8" defer></script>
 </body>
 </html>

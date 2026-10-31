@@ -1,14 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-NP7RJ1HD89"></script>
+<!-- Google Analytics is loaded by js/consent.js only after the visitor accepts cookies -->
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-NP7RJ1HD89');
+  gtag('consent', 'default', { analytics_storage: 'denied', ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied' });
 </script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -20,17 +17,33 @@
 <meta property="og:title" content="Opinion | Vanywinner News">
 <meta property="og:description" content="Opinion stories from Vanywinner News: Kenya, Africa and the world.">
 <meta property="og:url" content="https://vanywinner.co.ke/opinion.html">
+<meta property="og:image" content="https://vanywinner.co.ke/images/og-default.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<link rel="icon" href="favicon.ico" sizes="48x48">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-96x96.png" sizes="96x96" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap"></noscript>
-<link rel="stylesheet" href="css/style.css?v=5">
+<link rel="stylesheet" href="css/style.css?v=8">
 </head>
 <body class="has-breaking" data-root="">
+<div id="election-bar" class="election-bar">
+  <p class="election-bar__label"><span class="election-bar__title">Kenya General Election</span><span class="election-bar__date">Tue, 10 Aug 2027</span></p>
+  <div id="election-countdown" class="election-countdown" role="timer" aria-label="Time left until the election" data-target="2027-08-10T06:00:00+03:00">
+    <span class="cd"><b class="cd__num" data-unit="days">282</b><i class="cd__lbl">days</i></span>
+    <span class="cd"><b class="cd__num" data-unit="hours">15</b><i class="cd__lbl">hours</i></span>
+    <span class="cd"><b class="cd__num" data-unit="minutes">59</b><i class="cd__lbl">minutes</i></span>
+  </div>
+</div>
 <div id="breaking-bar" class="breaking-bar" role="region" aria-label="Breaking news">
   <span class="breaking-bar__label"><i class="breaking-bar__dot"></i>Breaking News</span>
-  <div class="breaking-bar__window"><div id="breaking-track" class="breaking-bar__track" style="animation-duration:116.1s"><div class="breaking-bar__group"><span class="breaking-bar__item">Kibabii University closed indefinitely after student dies in night attack, protests erupt.</span><span class="breaking-bar__item">Kenya confirms first Ebola case as patient who travelled from DRC dies in Nairobi</span><span class="breaking-bar__item">Ruto Promises Teachers Permanent Jobs.</span><span class="breaking-bar__item">Sifuna launches the Equitable Party for 2027 presidential bid</span><span class="breaking-bar__item">Gachagua alleges late tycoon Chivayo held KSh1.5 trillion for Ruto, offers no evidence.</span><span class="breaking-bar__item">ODM opens &quot;Mwezi wa Baba&quot;</span></div><div class="breaking-bar__group"><span class="breaking-bar__item">Kibabii University closed indefinitely after student dies in night attack, protests erupt.</span><span class="breaking-bar__item">Kenya confirms first Ebola case as patient who travelled from DRC dies in Nairobi</span><span class="breaking-bar__item">Ruto Promises Teachers Permanent Jobs.</span><span class="breaking-bar__item">Sifuna launches the Equitable Party for 2027 presidential bid</span><span class="breaking-bar__item">Gachagua alleges late tycoon Chivayo held KSh1.5 trillion for Ruto, offers no evidence.</span><span class="breaking-bar__item">ODM opens &quot;Mwezi wa Baba&quot;</span></div></div></div>
+  <div class="breaking-bar__window"><div id="breaking-track" class="breaking-bar__track" style="animation-duration:25s"><div class="breaking-bar__group"><span class="breaking-bar__item">Govt, Lecturers Agree Sh20bn Deal to End Strike; Signing Set for Friday</span></div><div class="breaking-bar__group"><span class="breaking-bar__item">Govt, Lecturers Agree Sh20bn Deal to End Strike; Signing Set for Friday</span></div></div></div>
   <time id="today-date" class="breaking-bar__date"></time>
 </div>
 <header id="site-header" class="site-header">
@@ -44,7 +57,7 @@
     <a class="main-nav__link" href="sports.html">Sports</a>
     <a class="main-nav__link is-active" href="opinion.html" aria-current="page">Opinion</a>
     <a class="main-nav__link" href="videos.html">Videos</a>
-    <a class="main-nav__link" href="videos.html">Live TV</a>
+    <a class="main-nav__link" href="about.html">About</a>
     <a class="main-nav__link" href="contact.html">Contact</a>
   </nav>
   <button id="search-toggle" class="icon-btn" type="button" aria-label="Search stories">Search</button>
@@ -60,6 +73,7 @@
   <section id="opinion" class="category-section">
     <h1 class="section-title">Opinion</h1>
     <p class="section-count">0 stories</p>
+    <p class="section-cta">Have a view on a trending topic? <a href="write-for-us.html">Write for us</a> and share your opinion.</p>
     <p class="empty-note">No Opinion stories yet. Check back soon.</p>
   </section>
 </main>
@@ -67,10 +81,12 @@
 <footer id="site-footer" class="site-footer">
   <div class="site-footer__inner">
     <p class="site-footer__copy">&copy; <span id="footer-year">2026</span> Vanywinner News &middot; Nairobi, Kenya &middot; vanywinner.co.ke</p>
+    <nav class="site-footer__legal" aria-label="Legal"><a href="privacy.html">Privacy Policy</a><a href="terms.html">Terms and Conditions</a><a href="cookies.html">Cookie Policy</a><a href="write-for-us.html">Write for us</a><button type="button" class="site-footer__cookie" data-cookie-settings>Cookie settings</button></nav>
     <p class="site-footer__dev">Developed by <a href="https://wa.me/254715672799" target="_blank" rel="noopener noreferrer">Vanywinner Enterprises</a></p>
   </div>
 </footer>
 
-<script src="js/site.js?v=5" defer></script>
+<script src="js/site.js?v=8" defer></script>
+<script src="js/consent.js?v=8" defer></script>
 </body>
 </html>
