@@ -14,6 +14,8 @@ jobs:
         with:
           node-version: 20
       - run: npm install sharp --no-save
+      - name: Repair merge-conflict markers in the data files
+        run: node scripts/repair-conflicts.js
       - run: node scripts/build.js
       - name: Commit generated files
         run: |

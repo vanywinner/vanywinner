@@ -37,14 +37,10 @@
   }
 
   /* ---------- story file names come from the title ---------- */
-  /* same rule as scripts/build.js: whole words only, up to 110 characters, never ending on "and", "of", "the"... */
   function slugify(title) {
     const base = String(title || "").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
       .replace(/&/g, " and ").replace(/['\u2019`]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-    if (base.length <= 110) return base;
-    let s = base.slice(0, 111); s = s.slice(0, s.lastIndexOf("-"));
-    while (/-(a|an|and|the|of|to|in|on|at|by|for|from|with|as|is|or|but|his|her|its|their|after|over)$/.test(s)) s = s.replace(/-[^-]*$/, "");
-    return s;
+    return base.length > 80 ? base.slice(0, 80).replace(/-[^-]*$/, "") : base;
   }
   function uniqueSlug(title) {
     let s = slugify(title) || "story";
@@ -55,184 +51,10 @@
     return cand;
   }
 
-  /* ---------- word-processor style editor ---------- */
-  const editor = $("post-body"), toolbar = $("editor-toolbar");
-  const ICONS = {
-    undo: '<path d="M9 14L4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3"/>', redo: '<path d="M15 14l5-5-5-5M20 9H10a6 6 0 0 0 0 12h3"/>',
-    left: '<path d="M3 5h18M3 10h12M3 15h18M3 20h12"/>', center: '<path d="M3 5h18M6 10h12M3 15h18M6 20h12"/>',
-    right: '<path d="M3 5h18M9 10h12M3 15h18M9 20h12"/>', full: '<path d="M3 5h18M3 10h18M3 15h18M3 20h18"/>',
-    ul: '<path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/>',
-    ol: '<path d="M10 6h11M10 12h11M10 18h11M4 4v4M3 8h2M3 14h2l-2 3h2"/>',
-    outdent: '<path d="M3 5h18M11 10h10M11 15h10M3 20h18M7 9l-3 3 3 3"/>', indent: '<path d="M3 5h18M11 10h10M11 15h10M3 20h18M4 9l3 3-3 3"/>',
-    link: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
-    unlink: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1M3 3l18 18"/>',
-    quote: '<path d="M7 17c-2 0-3-1.5-3-3.5S5.5 9 8 8M17 17c-2 0-3-1.5-3-3.5S15.5 9 18 8"/>', hr: '<path d="M3 12h18"/>',
-    clear: '<path d="M6 5h12M12 5l-2 7M5 20l14-14"/>'
-  };
-  const GROUPS = [
-    [{ cmd: "undo", icon: "undo", title: "Undo (Ctrl+Z)" }, { cmd: "redo", icon: "redo", title: "Redo (Ctrl+Y)" }],
-    [{ select: "block", title: "Paragraph style", options: [["p", "Paragraph"], ["h2", "Heading 1"], ["h3", "Heading 2"], ["h4", "Heading 3"], ["blockquote", "Quote"]] },
-     { select: "size", title: "Text size", options: [["3", "Normal"], ["2", "Small"], ["5", "Large"], ["6", "Huge"]] }],
-    [{ cmd: "bold", label: "B", cls: "tb--b", title: "Bold (Ctrl+B)", state: true }, { cmd: "italic", label: "I", cls: "tb--i", title: "Italic (Ctrl+I)", state: true },
-     { cmd: "underline", label: "U", cls: "tb--u", title: "Underline (Ctrl+U)", state: true }, { cmd: "strikeThrough", label: "S", cls: "tb--s", title: "Strikethrough", state: true }],
-    [{ color: "foreColor", title: "Text colour", init: "#C0392B", text: "A" }, { color: "hiliteColor", title: "Highlight colour", init: "#FFE066", text: "ab" }],
-    [{ cmd: "justifyLeft", icon: "left", title: "Align left", state: true }, { cmd: "justifyCenter", icon: "center", title: "Centre", state: true },
-     { cmd: "justifyRight", icon: "right", title: "Align right", state: true }, { cmd: "justifyFull", icon: "full", title: "Justify", state: true }],
-    [{ cmd: "insertUnorderedList", icon: "ul", title: "Bulleted list", state: true }, { cmd: "insertOrderedList", icon: "ol", title: "Numbered list", state: true },
-     { cmd: "outdent", icon: "outdent", title: "Decrease indent" }, { cmd: "indent", icon: "indent", title: "Increase indent" }],
-    [{ act: "link", icon: "link", title: "Insert link (Ctrl+K)" }, { cmd: "unlink", icon: "unlink", title: "Remove link" }, { act: "quote", icon: "quote", title: "Quote" },
-     { cmd: "insertHorizontalRule", icon: "hr", title: "Horizontal line" }, { act: "clear", icon: "clear", title: "Clear formatting" }]
-  ];
-  toolbar.innerHTML = GROUPS.map((g) => `<div class="tb-group">${g.map((b) => {
-    if (b.select) return `<select class="tb-select" data-select="${b.select}" title="${b.title}" aria-label="${b.title}">${b.options.map((o) => `<option value="${o[0]}">${o[1]}</option>`).join("")}</select>`;
-    if (b.color) return `<label class="tb-color" title="${b.title}"><span class="tb-color__a" style="color:${b.init}">${b.text}</span><input type="color" value="${b.init}" data-color="${b.color}" aria-label="${b.title}"></label>`;
-    return `<button type="button" class="tb ${b.cls || ""}" data-cmd="${b.cmd || ""}" data-act="${b.act || ""}" data-state="${b.state ? 1 : ""}" title="${b.title}" aria-label="${b.title}">${b.icon ? `<svg viewBox="0 0 24 24" aria-hidden="true">${ICONS[b.icon]}</svg>` : b.label}</button>`;
-  }).join("")}</div>`).join("");
+  /* ---------- word-processor style editor (shared code in js/editor.js) ---------- */
+  const ed = VWEditor({ editor: $("post-body"), toolbar: $("editor-toolbar"), wordCount: $("word-count") });
+  const { getBody, setBody, cleanHtml, textToHtml, plainOf, summaryOf, isHtmlBody, sync } = ed;
 
-  let saved = null, busy = false;
-  document.addEventListener("selectionchange", () => {
-    const s = getSelection();
-    if (s.rangeCount && editor.contains(s.anchorNode)) { saved = s.getRangeAt(0).cloneRange(); refresh(); }
-  });
-  function restore() {
-    const cur = getSelection();
-    if (document.activeElement === editor && cur.rangeCount && editor.contains(cur.anchorNode)) return;
-    editor.focus();
-    if (saved) { const s = getSelection(); s.removeAllRanges(); s.addRange(saved); }
-    try { document.execCommand("defaultParagraphSeparator", false, "p"); } catch (e) {}
-  }
-  const CSS_CMDS = ["foreColor", "hiliteColor", "fontSize"];
-  const KEEP_CARET = ["insertUnorderedList", "insertOrderedList", "indent", "outdent", "justifyLeft", "justifyCenter", "justifyRight", "justifyFull", "formatBlock", "bold", "italic", "underline", "strikeThrough"];
-  /* some browsers jump the cursor to the start of the line after list/align commands: remember it by character position and put it back */
-  function caretPos() {
-    const s = getSelection();
-    if (!s.rangeCount || !s.isCollapsed || !editor.contains(s.anchorNode)) return null;
-    const r = document.createRange(); r.selectNodeContents(editor); r.setEnd(s.anchorNode, s.anchorOffset);
-    return r.toString().length;
-  }
-  function setCaret(pos) {
-    const w = document.createTreeWalker(editor, NodeFilter.SHOW_TEXT); let n, left = pos;
-    while ((n = w.nextNode())) { if (left <= n.nodeValue.length) { const r = document.createRange(); r.setStart(n, left); r.collapse(true); const s = getSelection(); s.removeAllRanges(); s.addRange(r); return; } left -= n.nodeValue.length; }
-  }
-  function run(cmd, val) {
-    restore();
-    const pos = KEEP_CARET.includes(cmd) ? caretPos() : null;
-    try { document.execCommand("styleWithCSS", false, CSS_CMDS.includes(cmd)); } catch (e) {}
-    document.execCommand(cmd, false, val);
-    try { document.execCommand("styleWithCSS", false, false); } catch (e) {}
-    if (pos !== null && caretPos() !== pos) setCaret(pos);
-    sync();
-  }
-  function refresh() {
-    toolbar.querySelectorAll("[data-state]").forEach((b) => { if (b.dataset.state) { let on = false; try { on = document.queryCommandState(b.dataset.cmd); } catch (e) {} b.classList.toggle("is-on", on); } });
-    let blk = ""; try { blk = String(document.queryCommandValue("formatBlock")).replace(/[<>]/g, "").toLowerCase(); } catch (e) {}
-    const sel = toolbar.querySelector('[data-select="block"]'); if (sel) sel.value = ["h2", "h3", "h4", "blockquote"].includes(blk) ? blk : "p";
-  }
-  function sync() {
-    const text = editor.innerText.replace(/\u200b/g, "").trim();
-    editor.classList.toggle("is-empty", !text && !editor.querySelector("hr"));
-    const n = text ? text.split(/\s+/).length : 0;
-    $("word-count").textContent = n + (n === 1 ? " word" : " words");
-    refresh();
-  }
-  function addLink() {
-    restore();
-    const url = prompt("Web address (for example https://example.com)", "https://");
-    if (!url || url === "https://") return;
-    let u = url.trim(); if (!/^(https?:\/\/|mailto:)/i.test(u)) u = "https://" + u;
-    if (getSelection().isCollapsed) document.execCommand("insertHTML", false, `<a href="${esc(u)}">${esc(u)}</a>`);
-    else document.execCommand("createLink", false, u);
-    sync();
-  }
-  toolbar.addEventListener("mousedown", (e) => { if (e.target.closest(".tb")) e.preventDefault(); });
-  toolbar.addEventListener("click", (e) => {
-    const b = e.target.closest(".tb"); if (!b) return;
-    if (b.dataset.act === "link") addLink();
-    else if (b.dataset.act === "quote") { restore(); let blk = ""; try { blk = String(document.queryCommandValue("formatBlock")).replace(/[<>]/g, "").toLowerCase(); } catch (er) {} document.execCommand("formatBlock", false, blk === "blockquote" ? "<p>" : "<blockquote>"); sync(); }
-    else if (b.dataset.act === "clear") { restore(); document.execCommand("removeFormat"); document.execCommand("formatBlock", false, "<p>"); sync(); }
-    else run(b.dataset.cmd);
-  });
-  toolbar.addEventListener("change", (e) => {
-    const s = e.target.closest("[data-select]"), c = e.target.closest("[data-color]");
-    if (s) { if (s.dataset.select === "block") run("formatBlock", "<" + s.value + ">"); else run("fontSize", s.value); }
-    if (c) { c.previousElementSibling.style.color = c.value; run(c.dataset.color, c.value); }
-  });
-  const initEditing = () => { try { document.execCommand("styleWithCSS", false, false); document.execCommand("defaultParagraphSeparator", false, "p"); } catch (e) {} };
-  initEditing(); editor.addEventListener("focus", initEditing);
-  editor.addEventListener("keydown", (e) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") { e.preventDefault(); addLink(); } });
-  editor.addEventListener("input", () => {
-    if (!busy && editor.firstChild && editor.firstChild.nodeType === 3 && editor.firstChild.nodeValue.trim()) {
-      busy = true; document.execCommand("formatBlock", false, "<p>"); busy = false;
-    }
-    sync();
-  });
-
-  /* keeps only safe formatting; used for pasted text and for stories opened for editing */
-  const KEEP = { B: "strong", STRONG: "strong", I: "em", EM: "em", U: "u", S: "s", STRIKE: "s", P: "p", DIV: "p", BR: "br", UL: "ul", OL: "ol", LI: "li", BLOCKQUOTE: "blockquote",
-    H1: "h2", H2: "h2", H3: "h3", H4: "h4", H5: "h4", H6: "h4", HR: "hr", SUB: "sub", SUP: "sup", A: "a", SPAN: "span", FONT: "span" };
-  const SIZES = ["xx-small", "x-small", "small", "medium", "large", "x-large", "xx-large", "xxx-large"];
-  const COLOUR = /^(#[0-9a-f]{3,8}|rgba?\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*(,\s*[\d.]+\s*)?\)|[a-z]{3,20})$/i;
-  function styleOf(n, tag, keepColors) {
-    const out = [], st = n.style || {};
-    const al = st.textAlign || (n.getAttribute && n.getAttribute("align")) || "";
-    if (/^(left|center|right|justify)$/.test(al)) out.push("text-align:" + al);
-    if (tag === "span") {
-      if (keepColors) {
-        const col = st.color || (n.tagName === "FONT" && n.getAttribute("color")); if (col && COLOUR.test(col)) out.push("color:" + col);
-        if (st.backgroundColor && COLOUR.test(st.backgroundColor)) out.push("background-color:" + st.backgroundColor);
-      }
-      if (SIZES.includes(st.fontSize)) out.push("font-size:" + st.fontSize);
-    }
-    return out.join(";");
-  }
-  function cleanNodes(node, keepColors) {
-    let out = "";
-    node.childNodes.forEach((n) => {
-      if (n.nodeType === 3) { out += esc(n.nodeValue.replace(/[\r\n\t]+/g, " ").replace(/\u00a0/g, " ")); return; }
-      if (n.nodeType !== 1) return;
-      if (/^(SCRIPT|STYLE|HEAD|META|LINK|TITLE|IMG|IFRAME|OBJECT|SVG)$/.test(n.tagName)) return;
-      const t = KEEP[n.tagName], inner = cleanNodes(n, keepColors);
-      if (!t) { out += inner; return; }
-      if (t === "br" || t === "hr") { out += "<" + t + ">"; return; }
-      let attrs = "";
-      if (t === "a") { const h = n.getAttribute("href") || ""; if (!/^(https?:\/\/|mailto:)/i.test(h)) { out += inner; return; } attrs = ` href="${esc(h)}"`; }
-      const st = styleOf(n, t, keepColors); if (st) attrs += ` style="${st}"`;
-      if (t === "span") {
-        let w = st ? `<span${attrs}>${inner}</span>` : inner;
-        const css = n.style || {}, dec = (css.textDecorationLine || css.textDecoration || "");
-        if (css.fontWeight === "bold" || parseInt(css.fontWeight, 10) >= 600) w = `<strong>${w}</strong>`;
-        if (css.fontStyle === "italic") w = `<em>${w}</em>`;
-        if (/underline/.test(dec)) w = `<u>${w}</u>`;
-        if (/line-through/.test(dec)) w = `<s>${w}</s>`;
-        out += w; return;
-      }
-      out += `<${t}${attrs}>${inner}</${t}>`;
-    });
-    return out;
-  }
-  const cleanHtml = (html, keepColors) => cleanNodes(new DOMParser().parseFromString(html, "text/html").body, keepColors);
-  const textToHtml = (t) => String(t || "").split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean).map((p) => "<p>" + esc(p).replace(/\n/g, "<br>") + "</p>").join("");
-  const BLOCK = /^(P|H2|H3|H4|UL|OL|BLOCKQUOTE|HR)$/;
-  function normalize(html) {
-    const src = document.createElement("div"), out = document.createElement("div"); src.innerHTML = html; let p = null;
-    src.childNodes.forEach((n) => {
-      if (n.nodeType === 1 && BLOCK.test(n.tagName)) { p = null; out.appendChild(n.cloneNode(true)); }
-      else if (n.nodeType === 1 && n.tagName === "BR") { if (p) p.appendChild(n.cloneNode(true)); }
-      else { if (!p) { p = document.createElement("p"); out.appendChild(p); } p.appendChild(n.cloneNode(true)); }
-    });
-    out.querySelectorAll("p").forEach((x) => { if (!x.textContent.trim()) x.remove(); });
-    return out.innerHTML.trim();
-  }
-  editor.addEventListener("paste", (e) => {
-    e.preventDefault();
-    const cb = e.clipboardData, h = cb.getData("text/html"), t = cb.getData("text/plain");
-    restore(); document.execCommand("insertHTML", false, h ? cleanHtml(h, false) : textToHtml(t)); sync();
-  });
-  const getBody = () => normalize(cleanHtml(editor.innerHTML, true));
-  const setBody = (html) => { editor.innerHTML = html; sync(); };
-  const plainOf = (html) => { const d = document.createElement("div"); d.innerHTML = String(html).replace(/<(\/p|\/h[2-4]|\/li|\/blockquote|br)\b[^>]*>/gi, " $&"); return (d.textContent || "").replace(/\s+/g, " ").trim(); };
-  const summaryOf = (html) => { const t = plainOf(html); return t.length <= 160 ? t : t.slice(0, 160).replace(/\s+\S*$/, "") + "..."; };
-  const isHtmlBody = (a) => a.format === "html" || /^\s*<(p|h[2-4]|ul|ol|blockquote|div)\b/i.test(a.body || "");
 
   /* ---------- lists, editing ---------- */
   function renderList() {
@@ -258,10 +80,69 @@
     editingId = null; $("composer").reset(); setBody(""); $("photo-preview").hidden = true; $("photo-label").textContent = "Add photo";
     $("edit-banner").hidden = true; $("type-pills").hidden = false; $("post-btn").textContent = "Post"; syncType();
   }
+  /* ---------- opinion submissions (kept in a private repository) ---------- */
+  const subRepo = () => (cfg.subRepo || "vanywinner-submissions").trim();
+  function ghSub(path, opt = {}) {
+    return fetch(`https://api.github.com/repos/${cfg.owner}/${subRepo()}/contents/${path}`, { ...opt, headers: { Authorization: "Bearer " + cfg.token, Accept: "application/vnd.github+json" } })
+      .then(async (r) => { const j = await r.json(); if (!r.ok) throw new Error(j.message || r.status); return j; });
+  }
+  let subs = [], reviewing = null;
+  const subStatus = (m, bad) => { $("subs-status").textContent = m || ""; $("subs-status").className = "status" + (bad ? " status--error" : ""); };
+  async function loadSubmissions() {
+    subStatus("");
+    let files = [];
+    try { files = await ghSub("submissions"); }
+    catch (e) { subs = []; renderSubs(); if (!/not found/i.test(e.message)) subStatus("Could not load submissions: " + e.message + ". Check that your token can access the submissions repository.", true); return; }
+    files = files.filter((f) => /\.json$/.test(f.name)).sort((a, b) => b.name.localeCompare(a.name)).slice(0, 60);
+    subs = (await Promise.all(files.map(async (f) => { try { const j = await ghSub(f.path); const d = JSON.parse(unb64(j.content)); d._sha = j.sha; d._path = f.path; return d; } catch (e) { return null; } }))).filter(Boolean);
+    renderSubs();
+  }
+  function renderSubs() {
+    subs.sort((a, b) => (a.status === "pending" ? 0 : 1) - (b.status === "pending" ? 0 : 1) || String(b.id).localeCompare(String(a.id)));
+    const pending = subs.filter((x) => x.status === "pending").length;
+    $("subs-count").hidden = !pending; $("subs-count").textContent = pending + " pending";
+    $("subs-list").innerHTML = subs.length ? subs.map((x) => {
+      const tag = x.status === "published" ? '<span class="tag tag--published">Published</span>' : x.status === "rejected" ? '<span class="tag tag--rejected">Rejected</span>' : '<span class="tag tag--pending">Pending review</span>';
+      const when = x.submittedAt ? new Date(x.submittedAt).toLocaleString("en-KE", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }) : "";
+      const acts = x.status === "pending" ? `<button class="btn btn--ghost" type="button" data-review="${esc(x.id)}">Review</button><button class="btn btn--ghost" type="button" data-reject="${esc(x.id)}">Reject</button>` : `<button class="btn btn--ghost" type="button" data-delete-sub="${esc(x.id)}">Delete</button>`;
+      return `<li><div class="subs-item"><div class="subs-item__top">${tag}<span class="subs-item__title">${esc(x.title)}</span></div><div class="subs-item__meta">By ${esc(x.author)}${x.topic ? " | " + esc(x.topic) : ""} | ${x.words || "?"} words | ${when}</div><div class="subs-item__actions">${acts}</div></div></li>`;
+    }).join("") : '<li class="subs-empty">No submissions yet. They appear here when someone sends an article from the Write for us page.</li>';
+  }
+  async function markSubmission(x, status, extra = {}) {
+    const rec = Object.assign({}, x, extra, { status, reviewedAt: new Date().toISOString() }); delete rec._sha; delete rec._path;
+    const j = await ghSub(x._path, { method: "PUT", body: JSON.stringify({ message: `Mark submission ${status}: ${String(x.title).slice(0, 50)}`, content: b64(JSON.stringify(rec, null, 2)), sha: x._sha }) });
+    Object.assign(x, extra, { status }); x._sha = j.content.sha;
+  }
+  function startReview(id) {
+    const x = subs.find((y) => y.id === id); if (!x) return;
+    if (editingId) stopEdit();
+    reviewing = x;
+    document.querySelector("input[name=post-type][value=story]").checked = true; syncType(); $("type-pills").hidden = true;
+    $("post-title").value = x.title; setBody(cleanHtml(x.body, true)); $("post-summary").value = ""; $("post-category").value = "Opinion"; $("post-author").value = x.author;
+    $("post-photo").value = ""; $("photo-preview").hidden = true; $("photo-label").textContent = "Add photo";
+    $("review-author").textContent = x.author;
+    $("review-contact").textContent = [x.email && "Email: " + x.email, x.phone && "Phone: " + x.phone, "(contact details are never published)"].filter(Boolean).join("   ");
+    $("review-banner").hidden = false; $("post-btn").textContent = "Publish opinion"; say("");
+    $("composer").scrollIntoView({ behavior: "smooth", block: "start" }); $("post-title").focus({ preventScroll: true });
+  }
+  function stopReview() {
+    reviewing = null; $("review-banner").hidden = true; $("composer").reset(); setBody(""); $("photo-preview").hidden = true; $("type-pills").hidden = false; $("post-btn").textContent = "Post"; syncType();
+  }
+  $("subs-refresh").addEventListener("click", () => { subStatus("Refreshing..."); loadSubmissions().then(() => { if ($("subs-status").textContent === "Refreshing...") subStatus(""); }); });
+  $("cancel-review").addEventListener("click", () => { stopReview(); say(""); });
+  $("subs-list").addEventListener("click", async (e) => {
+    const rv = e.target.closest("[data-review]"), rj = e.target.closest("[data-reject]"), dl = e.target.closest("[data-delete-sub]");
+    try {
+      if (rv) { startReview(rv.dataset.review); return; }
+      if (rj) { const x = subs.find((y) => y.id === rj.dataset.reject); if (!x || !confirm("Reject this submission? It will not be published.")) return; subStatus("Saving..."); await markSubmission(x, "rejected"); if (reviewing && reviewing.id === x.id) stopReview(); renderSubs(); subStatus("Rejected."); }
+      if (dl) { const x = subs.find((y) => y.id === dl.dataset.deleteSub); if (!x || !confirm("Delete this submission record permanently?")) return; subStatus("Deleting..."); await ghSub(x._path, { method: "DELETE", body: JSON.stringify({ message: "Delete submission record", sha: x._sha }) }); subs = subs.filter((y) => y !== x); renderSubs(); subStatus("Deleted."); }
+    } catch (err) { subStatus(err.message, true); }
+  });
+
   function show() {
     const on = !!cfg;
-    $("setup-form").hidden = on; $("composer").hidden = !on; $("posts-panel").hidden = !on; $("settings-panel").hidden = !on; $("logout-btn").hidden = !on;
-    if (on) { load().catch((e) => say("Could not connect: " + e.message, true)); loadSettings(); }
+    $("setup-form").hidden = on; $("composer").hidden = !on; $("posts-panel").hidden = !on; $("settings-panel").hidden = !on; $("breaking-switch").hidden = !on; $("subs-panel").hidden = !on; $("logout-btn").hidden = !on;
+    if (on) { load().catch((e) => say("Could not connect: " + e.message, true)); loadSettings(); loadSubmissions(); }
   }
   function syncType() {
     const t = document.querySelector("input[name=post-type]:checked").value;
@@ -270,28 +151,59 @@
   }
 
   /* ---------- site settings (data/settings.json) ---------- */
-  const DEFAULTS = { showBreaking: true, showCountdown: true, electionLabel: "Kenya General Election", electionDate: "2027-08-10T06:00:00+03:00" };
-  async function loadSettings() {
-    let s = DEFAULTS; settingsSha = null;
-    try { const j = await gh("data/settings.json"); settingsSha = j.sha; s = Object.assign({}, DEFAULTS, JSON.parse(unb64(j.content))); } catch (e) {}
-    $("set-breaking").checked = !!s.showBreaking; $("set-countdown").checked = !!s.showCountdown;
-    $("set-label").value = s.electionLabel || ""; $("set-date").value = String(s.electionDate || DEFAULTS.electionDate).slice(0, 16);
+  const DEFAULTS = { showBreaking: true, showCountdown: true, electionLabel: "Kenya General Election", electionDate: "2027-08-10T06:00:00+03:00", submitEndpoint: "", turnstileSiteKey: "" };
+  let current = Object.assign({}, DEFAULTS);
+  async function fetchSettings() {
+    settingsSha = null; current = Object.assign({}, DEFAULTS);
+    try { const j = await gh("data/settings.json"); settingsSha = j.sha; current = Object.assign({}, DEFAULTS, JSON.parse(unb64(j.content))); } catch (e) {}
+    return current;
   }
+  async function writeSettings(next, message) {
+    const body = { message, content: b64(JSON.stringify(next, null, 2) + "\n"), branch: cfg.branch };
+    if (settingsSha) body.sha = settingsSha;
+    const j = await gh("data/settings.json", { method: "PUT", body: JSON.stringify(body) });
+    settingsSha = j.content.sha; current = next;
+  }
+  function paintBreaking() {
+    const on = !!current.showBreaking;
+    $("breaking-state").textContent = on ? "ON: the bar is showing to all visitors" : "OFF: the bar is hidden from all visitors";
+    $("breaking-state").className = "switch-card__state " + (on ? "is-on" : "is-off");
+    $("breaking-toggle").textContent = on ? "Turn off" : "Turn on";
+    $("breaking-toggle").classList.toggle("btn--off", on);
+    $("breaking-toggle").disabled = false;
+  }
+  async function loadSettings() {
+    try { await fetchSettings(); } catch (e) {}
+    paintBreaking();
+    $("set-countdown").checked = !!current.showCountdown;
+    $("set-endpoint").value = current.submitEndpoint || ""; $("set-turnstile").value = current.turnstileSiteKey || "";
+    $("set-label").value = current.electionLabel || ""; $("set-date").value = String(current.electionDate || DEFAULTS.electionDate).slice(0, 16);
+  }
+  $("breaking-toggle").addEventListener("click", async () => {
+    const st = $("breaking-status"); st.className = "status"; st.textContent = "Checking the latest setting...";
+    $("breaking-toggle").disabled = true;
+    try {
+      await fetchSettings();
+      const turnOff = !!current.showBreaking;
+      if (turnOff && !confirm("Hide the breaking news bar for everyone on the website?")) { paintBreaking(); st.textContent = ""; return; }
+      st.textContent = "Saving...";
+      await writeSettings(Object.assign({}, current, { showBreaking: !turnOff }), turnOff ? "Turn off breaking news bar" : "Turn on breaking news bar");
+      paintBreaking(); st.textContent = turnOff ? "Turned off. The website updates in a minute or two." : "Turned on. The website updates in a minute or two.";
+    } catch (err) { st.className = "status status--error"; st.textContent = err.message; paintBreaking(); }
+  });
   $("settings-save").addEventListener("click", async () => {
     saySet("Saving...");
     try {
+      await fetchSettings();
       const d = $("set-date").value || DEFAULTS.electionDate.slice(0, 16);
-      const out = { showBreaking: $("set-breaking").checked, showCountdown: $("set-countdown").checked, electionLabel: $("set-label").value.trim() || DEFAULTS.electionLabel, electionDate: d + ":00+03:00" };
-      const body = { message: "Update site settings", content: b64(JSON.stringify(out, null, 2) + "\n"), branch: cfg.branch };
-      if (settingsSha) body.sha = settingsSha;
-      const j = await gh("data/settings.json", { method: "PUT", body: JSON.stringify(body) });
-      settingsSha = j.content.sha; saySet("Saved. The live site updates in a minute or two.");
+      await writeSettings(Object.assign({}, current, { showCountdown: $("set-countdown").checked, electionLabel: $("set-label").value.trim() || DEFAULTS.electionLabel, submitEndpoint: $("set-endpoint").value.trim(), turnstileSiteKey: $("set-turnstile").value.trim(), electionDate: d + ":00+03:00" }), "Update site settings");
+      saySet("Saved. The live site updates in a minute or two.");
     } catch (err) { saySet(err.message, true); }
   });
 
   $("setup-form").addEventListener("submit", (e) => {
     e.preventDefault();
-    cfg = { owner: $("cfg-owner").value.trim(), repo: $("cfg-repo").value.trim(), branch: $("cfg-branch").value.trim(), token: $("cfg-token").value.trim() };
+    cfg = { owner: $("cfg-owner").value.trim(), repo: $("cfg-repo").value.trim(), branch: $("cfg-branch").value.trim(), token: $("cfg-token").value.trim(), subRepo: $("cfg-subrepo").value.trim() || "vanywinner-submissions" };
     localStorage.setItem(KEY, JSON.stringify(cfg)); show();
   });
   $("logout-btn").addEventListener("click", () => { localStorage.removeItem(KEY); cfg = null; location.reload(); });
@@ -330,9 +242,17 @@
       } else {
         let image; const f = $("post-photo").files[0];
         if (f) { say("Uploading photo..."); image = `images/${id}.jpg`; await gh(image, { method: "PUT", body: JSON.stringify({ message: "Add photo", content: await shrink(f), branch: cfg.branch }) }); }
-        data.articles.unshift({ id, slug: uniqueSlug(title), category: $("post-category").value, title, summary, body, format: "html", author: $("post-author").value.trim() || "Newsroom", time: when, date: new Date().toISOString(), image });
+        data.articles.unshift(Object.assign({ id, slug: uniqueSlug(title), category: $("post-category").value, title, summary, body, format: "html", author: $("post-author").value.trim() || "Newsroom", time: when, date: new Date().toISOString(), image }, reviewing ? { guest: true, topic: reviewing.topic || "", submissionId: reviewing.id } : {}));
       }
       await save("Post: " + title);
+      if (reviewing) {
+        const art = data.articles[0], sub = reviewing;
+        try { await markSubmission(sub, "published", { publishedSlug: art.slug, publishedAt: new Date().toISOString() }); renderSubs(); }
+        catch (er) { say("Published, but the submission could not be marked as published: " + er.message, true); }
+        stopReview(); $("post-btn").disabled = false;
+        if (!$("status").classList.contains("status--error")) say("Opinion published. The live site updates in a minute or two.");
+        return;
+      }
       $("composer").reset(); setBody(""); $("photo-preview").hidden = true; syncType();
       say("Published. The live site updates in a minute or two.");
     } catch (err) { say(err.message, true); }

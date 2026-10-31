@@ -1,40 +1,29 @@
 /* Generates every public page from data/posts.json:
      index.html (home, with the News stories below the top stories), business.html, sports.html, videos.html, about.html, contact.html,
      stories/TITLE-SLUG.html (one page per story, named after its title) and sitemap.xml.
-   Site switches (breaking bar, election countdown) come from data/settings.json.
+   Site switches (breaking bar on/off, election countdown) come from data/settings.json and are changed only from the admin page.
    Runs automatically on GitHub after every post or edit. Run locally with: node scripts/build.js */
 const fs = require("fs");
 const SITE = "https://vanywinner.co.ke";
 const PHONE_SHOW = "+254 715 672 799", PHONE_TEL = "+254715672799", WHATSAPP = "https://wa.me/254715672799";
+/* stop early, with a clear message, if a git merge left conflict markers in the data files */
+for (const f of ["data/posts.json", "data/settings.json"]) {
+  if (fs.existsSync(f) && /^<{7}/m.test(fs.readFileSync(f, "utf8"))) { console.error(`${f} contains git merge-conflict markers. Run: node scripts/repair-conflicts.js`); process.exit(1); }
+}
 const data = JSON.parse(fs.readFileSync("data/posts.json", "utf8"));
 data.articles = data.articles || []; data.videos = data.videos || []; data.breaking = data.breaking || [];
 const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
 /* ---------- site settings (edited from the admin page) ---------- */
-let settings = { showBreaking: true, showCountdown: true, electionLabel: "Kenya General Election", electionDate: "2027-08-10T06:00:00+03:00" };
+let settings = { showBreaking: true, showCountdown: true, electionLabel: "Kenya General Election", electionDate: "2027-08-10T06:00:00+03:00", submitEndpoint: "", turnstileSiteKey: "" };
 try { settings = Object.assign(settings, JSON.parse(fs.readFileSync("data/settings.json", "utf8"))); } catch (e) {}
 
-/* ---------- housekeeping on titles ---------- */
-/* a headline pasted from Markdown can start with "#"; never show it */
-for (const a of data.articles) a.title = String(a.title || "").replace(/^[\s#]+/, "").replace(/\s+/g, " ").trim();
-/* warn (do not fail) when Markdown leaks into a story: **bold**, "## heading" or [text](link) typed into a plain box */
-const MD_LEAK = /\*\*[^*\n]+\*\*|^\s*(?:<p>)?#{1,6}\s+\S|\]\(https?:\/\//m;
-for (const a of data.articles) if (MD_LEAK.test(a.body || "") || MD_LEAK.test(a.summary || "")) console.warn(`WARNING: story "${a.title}" still contains raw Markdown (**, ## or [text](url)). Use the editor's formatting buttons instead.`);
-
 /* ---------- story file names: the title, not a number ---------- */
-/* Whole words only, up to SLUG_MAX characters, never ending on a dangling "and", "of", "the"... (keep js/admin.js in step) */
-const SLUG_MAX = 110;
-const SLUG_TAIL = /-(a|an|and|the|of|to|in|on|at|by|for|from|with|as|is|or|but|his|her|its|their|after|over)$/;
-function trimSlug(base) {
-  if (base.length <= SLUG_MAX) return base;
-  let s = base.slice(0, SLUG_MAX + 1); s = s.slice(0, s.lastIndexOf("-"));
-  while (SLUG_TAIL.test(s)) s = s.replace(/-[^-]*$/, "");
-  return s;
-}
 function slugify(title, id) {
   const base = String(title || "").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
     .replace(/&/g, " and ").replace(/['\u2019`]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-  return trimSlug(base) || "story-" + String(id || Date.now()).slice(-6);
+  let slug = base.length > 80 ? base.slice(0, 80).replace(/-[^-]*$/, "") : base;
+  return slug || "story-" + String(id || Date.now()).slice(-6);
 }
 function assignSlugs() {
   const used = new Set(); let changed = false;
@@ -52,22 +41,6 @@ function assignSlugs() {
 }
 assignSlugs();
 const storyFile = (a) => `stories/${a.slug}.html`;
-
-/* Public addresses carry no ".html" (GitHub Pages serves /about for about.html, and the old .html addresses keep working).
-   Files on disk keep their names. The home page is just "/". */
-const pretty = (p) => String(p).replace(/(^|\/)index\.html(?=$|[#?])/, "$1").replace(/\.html(?=$|[#?])/, "");
-const to = (root, file) => (root + pretty(file)) || "./";
-
-/* ---------- authors: a byline that names a real person links to their profile and is marked up as a Person.
-   Desk bylines such as "Newsroom" are marked up as the organisation, because they are not people. ---------- */
-const AUTHORS = {
-  "Okhala Winslaus Ondwasi": { url: SITE + "/about#about-founder", page: "about.html#about-founder", jobTitle: "Founder and editor",
-    sameAs: ["https://winslausokhala.github.io", "https://www.linkedin.com/in/winslaus-okhala-861024409"] }
-};
-const bylineHtml = (a, root) => { const p = AUTHORS[a.author]; return p ? `<a href="${esc(to(root, p.page))}" rel="author">${esc(a.author)}</a>` : esc(a.author); };
-const authorLd = (a) => { const p = AUTHORS[a.author]; return p
-  ? { "@type": "Person", name: a.author, url: p.url, jobTitle: p.jobTitle, sameAs: p.sameAs }
-  : { "@type": "Organization", name: "Vanywinner News", url: SITE + "/" }; };
 
 /* ---------- rich text: keeps a safe set of formatting tags and drops everything else ---------- */
 const ALLOWED = new Set(["p", "br", "strong", "b", "em", "i", "u", "s", "strike", "h2", "h3", "h4", "ul", "ol", "li", "blockquote", "a", "span", "hr", "sub", "sup"]);
@@ -127,11 +100,11 @@ const bodyPlain = (a) => isHtmlBody(a) ? plainText(a.body) : String(a.body || ""
 const isRemote = (u) => /^(https?:)?\/\//.test(u);
 
 /* each menu item is its own page; stories are listed on the page of their category */
-const CATEGORIES = [["News", "news.html"], ["Business", "business.html"], ["Sports", "sports.html"]];
+const CATEGORIES = [["News", "news.html"], ["Business", "business.html"], ["Sports", "sports.html"], ["Opinion", "opinion.html"]];
 /* News has no page of its own: its stories are listed on the home page, below the top stories */
 const PAGE_CATS = CATEGORIES.filter((c) => c[0] !== "News");
 const catFile = (cat) => cat === "News" ? "index.html#news" : (PAGE_CATS.find((c) => c[0] === cat) || [])[1];
-const NAV = [["Home", "index.html"], ["Business", "business.html"], ["Sports", "sports.html"], ["Videos", "videos.html"], ["About", "about.html"], ["Contact", "contact.html"]];
+const NAV = [["Home", "index.html"], ["Business", "business.html"], ["Sports", "sports.html"], ["Opinion", "opinion.html"], ["Videos", "videos.html"], ["About", "about.html"], ["Contact", "contact.html"]];
 const FONTS = "https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap";
 
 /* Reads width/height from a JPEG or PNG so story images can reserve their space (prevents layout shift). */
@@ -167,7 +140,7 @@ async function makeResized(dir, width, quality) {
 async function makeThumbs() { if (!sharp) return; await makeResized("thumbs", 560, 72); await makeResized("hero", 900, 70); }
 
 /* ---------- card pieces (same markup as before) ---------- */
-const hrefOf = (a, root) => a.link || (a.slug ? root + pretty(storyFile(a)) : a.id ? root + "stories/" + encodeURIComponent(a.id) : "#");
+const hrefOf = (a, root) => a.link || (a.slug ? root + storyFile(a) : a.id ? root + "stories/" + encodeURIComponent(a.id) + ".html" : "#");
 const swapDir = (img, dir) => img.replace(/^images\//, `images/${dir}/`).replace(/\.[a-z0-9]+$/i, ".webp");
 function thumbHtml(a, root) {
   if (!a.image) return `<div class="thumb thumb--${esc(String(a.category).toLowerCase())}"></div>`;
@@ -233,10 +206,10 @@ function headerHtml(root, active) {
   const seen = new Set();
   const links = NAV.map(([label, file]) => {
     const on = file === active && !seen.has(file); seen.add(file);
-    return `<a class="main-nav__link${on ? " is-active" : ""}" href="${to(root, file)}"${on ? ' aria-current="page"' : ""}>${label}</a>`;
+    return `<a class="main-nav__link${on ? " is-active" : ""}" href="${root}${file}"${on ? ' aria-current="page"' : ""}>${label}</a>`;
   }).join("\n    ");
   return `<header id="site-header" class="site-header">
-  <a class="brand" href="${to(root, "index.html")}" aria-label="Vanywinner home">
+  <a class="brand" href="${root}index.html" aria-label="Vanywinner home">
     <img class="brand__logo" src="${root}favicon.svg" alt="" width="40" height="40">
     <span class="brand__name">Vanywinner<small>News</small></span>
   </a>
@@ -254,26 +227,19 @@ function headerHtml(root, active) {
 `;
 }
 /* ---------- election countdown strip (sits above the breaking-news bar on every page) ---------- */
-function electionStrip(hasBar) {
+function electionStrip() {
   const target = new Date(settings.electionDate);
-  const showCd = settings.showCountdown && !isNaN(target);
-  if (!showCd && !hasBar) return "";
-  let cd = "";
-  if (showCd) {
-    const ms = Math.max(0, target - Date.now());
-    const d = Math.floor(ms / 864e5), h = Math.floor(ms % 864e5 / 36e5), m = Math.floor(ms % 36e5 / 6e4);
-    const when = target.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric", timeZone: "Africa/Nairobi" });
-    cd = `<p class="election-bar__label"><span class="election-bar__title">${esc(settings.electionLabel)}</span><span class="election-bar__date">${when}</span></p>
+  if (!settings.showCountdown || isNaN(target)) return "";
+  const ms = Math.max(0, target - Date.now());
+  const d = Math.floor(ms / 864e5), h = Math.floor(ms % 864e5 / 36e5), m = Math.floor(ms % 36e5 / 6e4);
+  const when = target.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric", timeZone: "Africa/Nairobi" });
+  return `<div id="election-bar" class="election-bar">
+  <p class="election-bar__label"><span class="election-bar__title">${esc(settings.electionLabel)}</span><span class="election-bar__date">${when}</span></p>
   <div id="election-countdown" class="election-countdown" role="timer" aria-label="Time left until the election" data-target="${esc(settings.electionDate)}">
     <span class="cd"><b class="cd__num" data-unit="days">${d}</b><i class="cd__lbl">days</i></span>
     <span class="cd"><b class="cd__num" data-unit="hours">${String(h).padStart(2, "0")}</b><i class="cd__lbl">hours</i></span>
     <span class="cd"><b class="cd__num" data-unit="minutes">${String(m).padStart(2, "0")}</b><i class="cd__lbl">minutes</i></span>
-  </div>`;
-  }
-  const toggle = hasBar ? `<button id="ticker-toggle" class="election-bar__toggle" type="button" aria-pressed="false">Hide breaking news</button>` : "";
-  return `<div id="election-bar" class="election-bar${showCd ? "" : " election-bar--solo"}">
-  ${cd}
-  ${toggle}
+  </div>
 </div>
 `;
 }
@@ -281,7 +247,7 @@ function electionStrip(hasBar) {
 const footerHtml = (root = "") => `<footer id="site-footer" class="site-footer">
   <div class="site-footer__inner">
     <p class="site-footer__copy">&copy; <span id="footer-year">${new Date().getFullYear()}</span> Vanywinner News &middot; Nairobi, Kenya &middot; vanywinner.co.ke</p>
-    <nav class="site-footer__legal" aria-label="Legal"><a href="${to(root, "privacy.html")}">Privacy Policy</a><a href="${to(root, "terms.html")}">Terms and Conditions</a><a href="${to(root, "cookies.html")}">Cookie Policy</a><button type="button" class="site-footer__cookie" data-cookie-settings>Cookie settings</button></nav>
+    <nav class="site-footer__legal" aria-label="Legal"><a href="${root}privacy.html">Privacy Policy</a><a href="${root}terms.html">Terms and Conditions</a><a href="${root}cookies.html">Cookie Policy</a><a href="${root}write-for-us.html">Write for us</a><button type="button" class="site-footer__cookie" data-cookie-settings>Cookie settings</button></nav>
     <p class="site-footer__dev">Developed by <a href="https://wa.me/254715672799" target="_blank" rel="noopener noreferrer">Vanywinner Enterprises</a></p>
   </div>
 </footer>`;
@@ -294,25 +260,25 @@ const GA = `<!-- Google Analytics is loaded by js/consent.js only after the visi
 function minCss() {
   return fs.readFileSync("css/style.css", "utf8").replace(/\/\*[\s\S]*?\*\//g, "").replace(/\s+/g, " ").replace(/\s*([{};:,>])\s*/g, "$1").replace(/;}/g, "}");
 }
-const CSS_V = "7";
-const DEFAULT_OG = SITE + "/og-default.png";
+const CSS_V = "8";
+const OG_DEFAULT = `${SITE}/images/og-default.jpg`;
+const isoFromId = (id) => /^\d{13}$/.test(String(id)) ? new Date(Number(id)).toISOString() : undefined;
+const GENERIC_AUTHOR = /desk|newsroom|vanywinner|editorial|staff/i;
 
 /* one function builds the frame for every page */
 function layout(o) {
   const root = o.root || "";
-  const url = SITE + "/" + pretty(o.path || "");
-  /* every page gets a share picture (WhatsApp, Facebook and X cannot show an SVG, so the fallback is a PNG) */
-  const ogImg = o.ogImage
-    ? `\n<meta property="og:image" content="${esc(o.ogImage)}">\n<meta name="twitter:card" content="summary_large_image">\n<meta name="twitter:image" content="${esc(o.ogImage)}">`
-    : `\n<meta property="og:image" content="${DEFAULT_OG}">\n<meta property="og:image:width" content="1200">\n<meta property="og:image:height" content="630">\n<meta property="og:image:alt" content="Vanywinner News: Kenya, Africa and the world">\n<meta name="twitter:card" content="summary_large_image">\n<meta name="twitter:image" content="${DEFAULT_OG}">`;
+  const url = SITE + "/" + (o.path || "");
+  const shareImg = o.ogImage || OG_DEFAULT;
+  const ogImg = `\n<meta property="og:image" content="${shareImg}">` + (shareImg === OG_DEFAULT ? `\n<meta property="og:image:width" content="1200">\n<meta property="og:image:height" content="630">` : "") + `\n<meta name="twitter:card" content="summary_large_image">`
+    + ((o.head || "").includes('name="robots"') ? "" : `\n<meta name="robots" content="index, follow, max-image-preview:large">`);
   const css = o.inlineCss ? `<style>${minCss()}</style>` : `<link rel="stylesheet" href="${root}css/style.css?v=${CSS_V}">`;
   const scripts = [`${root}js/site.js?v=${CSS_V}`, `${root}js/consent.js?v=${CSS_V}`].concat(o.scripts || []).map((s) => `<script src="${s}" defer></script>`).join("\n");
   const bar = o.story ? "" : breakingBar();
-  const strip = electionStrip(!!bar);
+  const strip = electionStrip();
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
-<script>try{if(localStorage.getItem("vw_ticker")==="off")document.documentElement.classList.add("ticker-off")}catch(e){}</script>
 ${GA}
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -387,6 +353,7 @@ function sectionPage([cat, file]) {
   <section id="${cat.toLowerCase()}" class="category-section">
     <h1 class="section-title">${cat}</h1>
     <p class="section-count">${count}</p>
+    ${cat === "Opinion" ? `<p class="section-cta">Have a view on a trending topic? <a href="write-for-us.html">Write for us</a> and share your opinion.</p>` : ""}
     ${list.length ? `<div class="card-grid">${list.map((a) => storyCard(a, "")).join("")}</div>` : `<p class="empty-note">No ${cat} stories yet. Check back soon.</p>`}
   </section>
 </main>`
@@ -399,8 +366,8 @@ function newsRedirect() {
   fs.writeFileSync("news.html", `<!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><title>News | Vanywinner News</title>
 <meta name="robots" content="noindex"><link rel="canonical" href="${SITE}/">
-<meta http-equiv="refresh" content="0; url=./#news"><script>location.replace("./#news");</script></head>
-<body><p><a href="./#news">Go to the News section</a></p></body></html>
+<meta http-equiv="refresh" content="0; url=index.html#news"><script>location.replace("index.html#news");</script></head>
+<body><p><a href="index.html#news">Go to the News section</a></p></body></html>
 `);
 }
 
@@ -533,44 +500,80 @@ ${body}
   }));
 }
 
+function submitPage() {
+  const key = String(settings.turnstileSiteKey || "").trim();
+  const body = fs.readFileSync("content/write-for-us.html", "utf8")
+    .replace(/\{\{ENDPOINT\}\}/g, esc(settings.submitEndpoint || ""))
+    .replace(/\{\{TURNSTILE\}\}/g, key ? `<div class="cf-turnstile" data-sitekey="${esc(key)}"></div>` : "");
+  writePage("write-for-us.html", layout({
+    path: "write-for-us.html", active: "opinion.html",
+    title: "Write for us: share your opinion | Vanywinner News",
+    desc: "Share your opinion on trending topics with Vanywinner News. Write your article online and send it to our editor for review.",
+    head: key ? '\n<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>' : "",
+    scripts: [`js/editor.js?v=${CSS_V}`, `js/submit.js?v=${CSS_V}`],
+    main: `<main id="write-for-us-page" class="about">
+  <section id="write-for-us-hero" class="about-hero">
+    <h1 class="about-hero__title">Write for us</h1>
+    <p class="about-hero__lead">Have a view on a trending topic? Write it here and send it to our editor.</p>
+  </section>
+  <section class="about-card legal">
+${body}
+  </section>
+</main>`
+  }));
+}
+
 function storyPages(urls, today) {
   fs.rmSync("stories", { recursive: true, force: true });
   fs.mkdirSync("stories");
   for (const a of data.articles) {
     const file = storyFile(a);
-    const url = `${SITE}/${pretty(file)}`;
+    const url = `${SITE}/${file}`;
     const desc = (a.summary || bodyPlain(a)).replace(/\s+/g, " ").slice(0, 160);
-    const img = a.image ? (isRemote(a.image) ? a.image : `${SITE}/${a.image}`) : DEFAULT_OG;
+    const img = a.image ? (isRemote(a.image) ? a.image : `${SITE}/${a.image}`) : OG_DEFAULT;
     const dim = a.image && !isRemote(a.image) ? imageSize(a.image) : null;
     const dimAttrs = dim ? ` width="${dim.w}" height="${dim.h}"` : "";
+    const published = a.date || isoFromId(a.id);
+    const headline = a.title.length > 110 ? a.title.slice(0, 107).replace(/\s+\S*$/, "") + "..." : a.title;
+    const wordCount = bodyPlain(a).split(/\s+/).filter(Boolean).length;
+    const org = { "@type": "Organization", name: "Vanywinner News", url: SITE + "/", logo: { "@type": "ImageObject", url: SITE + "/favicon-192x192.png", width: 192, height: 192 } };
     const ld = JSON.stringify({
-      "@context": "https://schema.org", "@type": "NewsArticle", headline: a.title, datePublished: a.date, dateModified: a.updated || a.date,
-      author: authorLd(a), image: img, mainEntityOfPage: url,
-      publisher: { "@type": "Organization", name: "Vanywinner News", logo: { "@type": "ImageObject", url: SITE + "/favicon-192x192.png" } }
+      "@context": "https://schema.org", "@type": a.category === "Opinion" ? "OpinionNewsArticle" : "NewsArticle", headline, description: desc, url,
+      datePublished: published, dateModified: a.updated || published,
+      author: GENERIC_AUTHOR.test(a.author || "") || !a.author ? { "@type": "Organization", name: "Vanywinner News", url: SITE + "/" } : { "@type": "Person", name: a.author },
+      publisher: org, image: [img], mainEntityOfPage: { "@type": "WebPage", "@id": url },
+      articleSection: a.category, inLanguage: "en-KE", isAccessibleForFree: true, wordCount
+    }).replace(/</g, "\\u003c");
+    const cfCrumb = catFile(a.category);
+    const crumbs = JSON.stringify({
+      "@context": "https://schema.org", "@type": "BreadcrumbList",
+      itemListElement: [{ "@type": "ListItem", position: 1, name: "Home", item: SITE + "/" }]
+        .concat(cfCrumb ? [{ "@type": "ListItem", position: 2, name: a.category, item: `${SITE}/${cfCrumb}` }] : [])
+        .concat([{ "@type": "ListItem", position: cfCrumb ? 3 : 2, name: headline }])
     }).replace(/</g, "\\u003c");
     const cf = catFile(a.category);
     writePage(file, layout({
       root: "../", path: file, story: true, active: cf || "", ogType: "article", ogImage: img,
       title: `${a.title} | Vanywinner News`, ogTitle: a.title, desc,
-      head: `\n<script type="application/ld+json">${ld}</script>`,
+      head: `\n<script type="application/ld+json">${ld}</script>\n<script type="application/ld+json">${crumbs}</script>`,
       main: `<main id="story-page" class="story-page">
-  <a class="story-page__back" href="../">Back to home</a>
-  <h1 class="story-page__title">${esc(a.title)}</h1>${cf ? `<a class="chip" href="${to("../", cf)}">${esc(a.category)}</a>` : `<span class="chip">${esc(a.category)}</span>`}
-  <p class="story-page__meta">By ${bylineHtml(a, "../")}, ${esc(a.time)}</p>
+  <a class="story-page__back" href="../index.html">Back to home</a>
+  <h1 class="story-page__title">${esc(a.title)}</h1>${cf ? `<a class="chip" href="../${cf}">${esc(a.category)}</a>` : `<span class="chip">${esc(a.category)}</span>`}
+  <p class="story-page__meta">By ${esc(a.author)}, ${esc(a.time)}</p>
   ${a.image ? `<img class="story-page__image" src="${isRemote(a.image) ? esc(a.image) : "../" + esc(a.image)}" alt="${esc(a.title)}"${dimAttrs} decoding="async">` : ""}
-  <div class="story-page__body">${bodyHtml(a)}</div>
+  <div class="story-page__body">${bodyHtml(a)}</div>${a.category === "Opinion" ? `
+  <aside class="story-page__note"><strong>Opinion.</strong> The views expressed are the author's own and do not necessarily reflect those of Vanywinner News. <a href="../write-for-us.html">Write for us</a> to share yours.</aside>` : ""}
 </main>`
     }));
-    urls.push([url, (a.updated || a.date || today).slice(0, 10)]);
-    /* the old numeric address, and any earlier title address (a.oldSlugs), keep working: they forward to the current address */
-    const moved = [a.id, ...(a.oldSlugs || [])].filter((o) => o && String(o) !== a.slug);
-    for (const old of moved) {
-      writePage(`stories/${old}.html`, `<!DOCTYPE html>
+    urls.push([url, (a.updated || published || today).slice(0, 10)]);
+    /* the old numeric address keeps working: it forwards to the title address */
+    if (a.id && String(a.id) !== a.slug) {
+      writePage(`stories/${a.id}.html`, `<!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><title>${esc(a.title)} | Vanywinner News</title>
 <link rel="canonical" href="${url}">
-<meta http-equiv="refresh" content="0; url=${a.slug}">
-<script>location.replace(${JSON.stringify(a.slug)});</script>
-</head><body><p>This story has moved. <a href="${a.slug}">Read: ${esc(a.title)}</a></p></body></html>
+<meta http-equiv="refresh" content="0; url=${a.slug}.html">
+<script>location.replace(${JSON.stringify(a.slug + ".html")});</script>
+</head><body><p>This story has moved. <a href="${a.slug}.html">Read: ${esc(a.title)}</a></p></body></html>
 `);
     }
   }
@@ -588,6 +591,7 @@ async function main() {
   videosPage(); urls.push([SITE + "/videos.html", today]);
   aboutPage(); urls.push([SITE + "/about.html", today]);
   contactPage(); urls.push([SITE + "/contact.html", today]);
+  submitPage(); urls.push([SITE + "/write-for-us.html", today]);
   legalPage("privacy.html", "Privacy Policy", "How Vanywinner News collects, uses and protects your information.", "How Vanywinner News collects, uses and protects your personal information, including cookies, analytics and advertising.");
   urls.push([SITE + "/privacy.html", today]);
   legalPage("terms.html", "Terms and Conditions", "The rules for using Vanywinner News.", "The terms and conditions for using Vanywinner News, including content use, accuracy, advertising and complaints.");
@@ -600,9 +604,9 @@ async function main() {
   if (lost.length) console.warn(`WARNING: ${lost.length} story(ies) have a category without a page: ${[...new Set(lost.map((a) => a.category))].join(", ")}`);
   fs.writeFileSync("sitemap.xml", `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls.map(([u, d]) => `  <url><loc>${pretty(u)}</loc><lastmod>${d}</lastmod></url>`).join("\n")}
+${urls.map(([u, d]) => `  <url><loc>${u}</loc><lastmod>${d}</lastmod></url>`).join("\n")}
 </urlset>
 `);
-  console.log(`Built home, ${counts.join(", ")}, ${data.videos.length} videos, about, contact, privacy, terms, cookies, ${data.articles.length} story pages and sitemap.xml`);
+  console.log(`Built home, ${counts.join(", ")}, ${data.videos.length} videos, about, contact, write-for-us, privacy, terms, cookies, ${data.articles.length} story pages and sitemap.xml`);
 }
 main().catch((e) => { console.error(e); process.exit(1); });

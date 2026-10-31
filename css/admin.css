@@ -63,3 +63,26 @@ textarea { resize: vertical; margin-bottom: 14px; }
 @media (max-width: 640px) { .editor__hint { display: none; } .editor__page { padding: 16px; } }
 
 .admin { max-width: 900px; }
+
+.switch-card { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px 24px; border-left: 6px solid var(--color-alert, #E4202D); }
+.switch-card[hidden] { display: none; }
+.switch-card__text { flex: 1 1 320px; }
+.switch-card__state { margin: 0 0 6px; font-weight: 700; }
+.switch-card__state.is-on { color: #0B7A3B; } .switch-card__state.is-off { color: #B42318; }
+.btn--off { background: #B42318; } .btn--off:hover { background: #7A1710; }
+
+.panel__sub { margin: 18px 0 10px; font: 700 1.05rem var(--font-head); }
+.subs-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.badge { display: inline-block; min-width: 24px; padding: 1px 9px; border-radius: 999px; background: #F59E0B; color: #1d1300; font: 800 .8rem/1.6 var(--font-body); text-align: center; vertical-align: middle; }
+.subs-list { margin: 0; padding: 0; list-style: none; }
+.subs-list li { padding: 14px 0; border-top: 1px solid var(--color-line); }
+.subs-empty { color: #5C6B8C; }
+.subs-item { display: grid; gap: 6px; }
+.subs-item__top { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.subs-item__title { font-weight: 700; }
+.subs-item__meta { color: #5C6B8C; font-size: .88rem; }
+.subs-item__actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.tag { display: inline-block; padding: 2px 10px; border-radius: 999px; font: 700 .76rem var(--font-body); }
+.tag--pending { background: #FFF1CC; color: #7A4A00; } .tag--published { background: #DDF5E6; color: #0B6B30; } .tag--rejected { background: #ECEFF5; color: #4C5A78; }
+.review-banner { border-left-color: #F59E0B; }
+.review-banner__contact { margin-top: 4px; color: #5C6B8C; font-size: .88rem; }

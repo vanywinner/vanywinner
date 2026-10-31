@@ -1,0 +1,52 @@
+<h2>Share your opinion with Vanywinner News</h2>
+<p>We publish guest opinions on trending topics and on any subject that matters to Kenyans. If you have a clear argument, write it here. Every submission is read by our editor before anything is published.</p>
+
+<h2>What we look for</h2>
+<ul>
+  <li>An original piece written by you, between <strong>150 and 2,500 words</strong> (300 to 1,000 works best).</li>
+  <li>One clear point of view, supported by facts, examples or experience. Name your sources where you use figures or quotes.</li>
+  <li>A fair tone. We do not publish hate speech, personal attacks, unproven allegations against named people, or content that promotes violence.</li>
+  <li>No copied text and no articles already published elsewhere.</li>
+</ul>
+
+<h2>What happens next</h2>
+<ul>
+  <li>Your article goes to our editor as <strong>pending review</strong>. It is not public until it is approved.</li>
+  <li>We may edit for length, clarity and legal safety. We may contact you if we have questions, which is why an email or phone number is helpful, though both are optional.</li>
+  <li>Your name appears on the published article. Your email and phone number are never published.</li>
+  <li>Opinions are the views of their authors and do not necessarily reflect those of Vanywinner News. We cannot promise that every article will be published.</li>
+</ul>
+
+<h2>Write your article</h2>
+<form id="submit-form" class="submit-form" data-endpoint="{{ENDPOINT}}" novalidate>
+  <p id="submit-closed" class="submit-closed" hidden>Submissions are not open yet. Please check back soon, or email <a class="contact-list__link" href="mailto:vanywinner@gmail.com">vanywinner@gmail.com</a>.</p>
+  <label class="sub-field">Headline<input id="sub-title" maxlength="140" placeholder="A clear headline for your opinion" autocomplete="off" required></label>
+  <div class="sub-row">
+    <label class="sub-field">Topic<select id="sub-topic">
+      <option>Trending topic</option><option>Politics</option><option>Economy and jobs</option><option>Education</option><option>Technology</option><option>Health</option><option>Sports</option><option>Culture and society</option><option>Other</option>
+    </select></label>
+    <label class="sub-field">Your name (published)<input id="sub-name" maxlength="80" autocomplete="name" placeholder="Full name" required></label>
+  </div>
+  <div class="sub-row">
+    <label class="sub-field">Email (optional, not published)<input id="sub-email" type="email" maxlength="120" autocomplete="email" placeholder="you@example.com"></label>
+    <label class="sub-field">Phone (optional, not published)<input id="sub-phone" type="tel" maxlength="26" autocomplete="tel" placeholder="+254 7xx xxx xxx"></label>
+  </div>
+  <div class="sub-field">
+    <span class="sub-label">Your article</span>
+    <div id="story-editor" class="editor">
+      <div id="editor-toolbar" class="editor__toolbar" role="toolbar" aria-label="Text formatting"></div>
+      <div id="sub-body" class="editor__page is-empty" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Your article" data-placeholder="Start writing here. Select text to make it bold, italic, underlined, a heading or a link."></div>
+      <div class="editor__status"><span id="sub-words">0 words</span><span class="editor__hint">150 to 2,500 words. Your draft is saved on this device as you type.</span></div>
+    </div>
+  </div>
+  <div class="sub-hidden" aria-hidden="true"><label>Leave this empty<input id="sub-website" tabindex="-1" autocomplete="off"></label></div>
+  <label class="sub-check"><input id="sub-consent" type="checkbox"> I confirm this article is my own work, that I accept the <a class="contact-list__link" href="terms.html">Terms and Conditions</a>, and that Vanywinner News may edit and publish it under my name.</label>
+  {{TURNSTILE}}
+  <div class="sub-foot"><p id="sub-status" class="sub-status" role="status"></p><button id="sub-btn" class="sub-btn" type="submit">Submit for review</button></div>
+</form>
+<div id="submit-done" class="submit-done" hidden>
+  <h2>Thank you. Your article is in.</h2>
+  <p>We have received your opinion. Our editor will review it, and you will see it on the site if it is approved.</p>
+  <p class="legal__updated">Reference: <strong id="sub-ref"></strong></p>
+  <p><a class="contact-list__link" href="index.html">Back to the home page</a></p>
+</div>
