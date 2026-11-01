@@ -3,6 +3,6 @@
   "showCountdown": true,
   "electionLabel": "Kenya General Election",
   "electionDate": "2027-08-10T06:00:00+03:00",
-  "submitEndpoint": "",
+  "submitEndpoint": "https://vanywinner-submit.winslausokhala.workers.dev/",
   "turnstileSiteKey": ""
 }
