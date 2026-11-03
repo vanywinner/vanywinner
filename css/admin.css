@@ -33,34 +33,63 @@ textarea { resize: vertical; margin-bottom: 14px; }
 @media (max-width: 520px) { .post-list__item { flex-direction: column; align-items: stretch; } .post-list__actions { justify-content: flex-end; } .edit-banner { flex-direction: column; align-items: stretch; } }
 #composer { scroll-margin-top: 90px; }
 
-/* Story editor (works like a word processor) */
-.editor { margin-bottom: 14px; border: 1.5px solid var(--color-line); border-radius: 14px; background: #fff; overflow: hidden; }
-.editor__toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 2px; padding: 8px 10px; background: var(--color-mist); border-bottom: 1px solid var(--color-line); position: sticky; top: 0; z-index: 5; }
-.tb-group { display: flex; align-items: center; gap: 2px; padding: 0 6px; border-right: 1px solid var(--color-line); }
-.tb-group:last-child { border-right: 0; }
-.tb { display: inline-grid; place-items: center; min-width: 34px; height: 34px; padding: 0 6px; border: 0; border-radius: 8px; background: transparent; color: var(--color-ink); font: 700 1rem var(--font-body); cursor: pointer; }
-.tb:hover { background: #fff; }
-.tb.is-on { background: var(--color-cobalt); color: #fff; }
-.tb svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.tb--i { font-style: italic; font-family: Georgia, serif; } .tb--u { text-decoration: underline; } .tb--s { text-decoration: line-through; }
-.tb-select { height: 34px; padding: 0 8px; border: 1px solid var(--color-line); border-radius: 8px; background: #fff; font: 600 .86rem var(--font-body); width: auto; }
-.tb-color { position: relative; display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 8px; cursor: pointer; }
-.tb-color:hover { background: #fff; }
-.tb-color input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; padding: 0; border: 0; cursor: pointer; }
-.tb-color__a { font: 800 1rem/1 var(--font-body); border-bottom: 4px solid currentColor; padding: 0 2px; }
-.editor__page { min-height: 340px; max-height: 70vh; overflow-y: auto; padding: 22px 28px; font: 400 1.05rem/1.75 var(--font-body); outline: none; background: #fff; resize: vertical; }
-.editor__page.is-empty::before { content: attr(data-placeholder); color: #8A97B5; pointer-events: none; display: block; }
-.editor__page p { margin: 0 0 1em; }
-.editor__page h2, .editor__page h3, .editor__page h4 { margin: 1.2em 0 .4em; font-family: var(--font-head); line-height: 1.2; color: var(--color-navy); }
-.editor__page h2 { font-size: 1.6rem; } .editor__page h3 { font-size: 1.3rem; } .editor__page h4 { font-size: 1.1rem; }
-.editor__page blockquote { margin: 1em 0; padding: .5em 1em; border-left: 5px solid var(--color-cobalt); background: var(--color-mist); border-radius: 0 10px 10px 0; }
-.editor__page a { color: var(--color-cobalt); text-decoration: underline; }
-.editor__page ul, .editor__page ol { margin: 0 0 1em; padding-left: 1.4em; }
-.editor__page hr { border: 0; border-top: 2px solid var(--color-line); margin: 1.4em 0; }
-.editor__status { display: flex; justify-content: space-between; gap: 12px; padding: 6px 14px; background: var(--color-mist); border-top: 1px solid var(--color-line); color: #5C6B8C; font-size: .82rem; }
+/* Admin story editor (the public submission editor keeps its shared style.css rules). */
+#composer .editor { margin-bottom: 14px; border: 1.5px solid var(--color-line); border-radius: 16px; background: #fff; overflow: hidden; box-shadow: 0 8px 24px rgba(20, 39, 78, .08); }
+#composer .editor__toolbar { display: flex; flex-wrap: wrap; align-items: stretch; gap: 2px 0; padding: 8px 10px; background: #F7F8FB; border-bottom: 1px solid var(--color-line); position: sticky; top: 0; z-index: 5; }
+#composer .tb-group { position: relative; display: flex; flex-wrap: wrap; align-content: flex-start; align-items: center; gap: 2px; padding: 22px 8px 4px; border-right: 1px solid var(--color-line); }
+#composer .tb-group::before { position: absolute; top: 5px; left: 8px; color: #5C6B8C; font: 700 .66rem/1 var(--font-body); letter-spacing: .06em; text-transform: uppercase; }
+#composer .tb-group:nth-child(1)::before { content: "History"; }
+#composer .tb-group:nth-child(2)::before { content: "Paragraph"; }
+#composer .tb-group:nth-child(3)::before { content: "Text"; }
+#composer .tb-group:nth-child(4)::before { content: "Alignment"; }
+#composer .tb-group:nth-child(5)::before { content: "Lists"; }
+#composer .tb-group:nth-child(6)::before { content: "Insert"; }
+#composer .tb-group:last-child { border-right: 0; }
+#composer .tb { display: inline-grid; place-items: center; min-width: 36px; height: 36px; padding: 0 7px; border: 0; border-radius: 8px; background: transparent; color: var(--color-ink); font: 700 1rem var(--font-body); cursor: pointer; }
+#composer .tb:hover { background: #fff; box-shadow: 0 1px 4px rgba(20, 39, 78, .12); }
+#composer .tb.is-on { background: var(--color-cobalt); color: #fff; }
+#composer .tb:focus-visible, #composer .tb-select:focus-visible, #composer .tb-color:focus-within { outline: 3px solid var(--color-azure); outline-offset: 2px; position: relative; z-index: 1; }
+#composer .tb svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+#composer .tb--i { font-style: italic; font-family: Georgia, serif; } #composer .tb--u { text-decoration: underline; } #composer .tb--s { text-decoration: line-through; }
+#composer .tb-select { height: 36px; padding: 0 9px; border: 1px solid var(--color-line); border-radius: 8px; background: #fff; font: 600 .86rem var(--font-body); width: auto; }
+#composer .tb-color { position: relative; display: inline-grid; place-items: center; width: 36px; height: 36px; border-radius: 8px; cursor: pointer; }
+#composer .tb-color:hover { background: #fff; }
+#composer .tb-color input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; padding: 0; border: 0; cursor: pointer; }
+#composer .tb-color__a { font: 800 1rem/1 var(--font-body); border-bottom: 4px solid currentColor; padding: 0 2px; }
+#composer .tb-group:nth-child(6) .tb[data-act="clear"] { display: inline-flex; align-items: center; gap: 5px; width: auto; margin-left: 6px; padding-left: 11px; border-left: 1px solid var(--color-line); color: var(--color-cobalt); font-size: .82rem; }
+#composer .tb-group:nth-child(6) .tb[data-act="clear"]::before { content: "Clear"; }
+#composer .editor__workspace { padding: 24px 16px; background: #EEF1F5; }
+#composer .editor__page { width: calc(100% - 16px); max-width: 790px; min-height: 580px; max-height: 72vh; overflow-y: auto; margin: 0 auto; padding: clamp(32px, 6vw, 68px); border: 1px solid #E1E5EC; border-radius: 3px; box-shadow: 0 3px 12px rgba(20, 39, 78, .1); font: 400 1.08rem/1.85 var(--font-body); color: var(--color-ink); outline: none; background: #fff; resize: vertical; }
+#composer .editor__page:focus-visible { outline: 3px solid var(--color-azure); outline-offset: 2px; }
+#composer .editor__page.is-empty::before { content: attr(data-placeholder); color: #8A97B5; pointer-events: none; display: block; }
+#composer .editor__page img { max-width: 100%; height: auto; vertical-align: middle; }
+#composer .editor__page p { margin: 0 0 1.15em; }
+#composer .editor__page h2, #composer .editor__page h3, #composer .editor__page h4 { margin: 1.55em 0 .55em; font-family: var(--font-head); line-height: 1.22; color: var(--color-navy); }
+#composer .editor__page h2 { font-size: 1.7rem; } #composer .editor__page h3 { font-size: 1.38rem; } #composer .editor__page h4 { font-size: 1.15rem; }
+#composer .editor__page blockquote { margin: 1.2em 0; padding: .65em 1em; border-left: 5px solid var(--color-cobalt); background: var(--color-mist); border-radius: 0 10px 10px 0; }
+#composer .editor__page a { color: var(--color-cobalt); text-decoration: underline; }
+#composer .editor__page ul, #composer .editor__page ol { margin: 0 0 1.15em; padding-left: 1.5em; }
+#composer .editor__page hr { border: 0; border-top: 2px solid var(--color-line); margin: 1.6em 0; }
+#composer .editor__status { display: flex; justify-content: space-between; gap: 12px; padding: 8px 16px; background: #fff; border-top: 1px solid var(--color-line); color: #5C6B8C; font-size: .82rem; }
+#composer .editor__notice { margin: 0; padding: 8px 16px; background: #FFF4E5; color: #7A4A00; font-size: .86rem; }
+#composer .editor__notice[hidden] { display: none; }
+#composer .editor__notice--error { color: #B42318; }
 .check { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-weight: 600; cursor: pointer; }
 .check input { width: 20px; height: 20px; accent-color: var(--color-cobalt); }
-@media (max-width: 640px) { .editor__hint { display: none; } .editor__page { padding: 16px; } }
+@media (max-width: 760px) {
+  #composer .editor__toolbar { flex-wrap: nowrap; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: thin; }
+  #composer .tb-group { flex: 0 0 auto; }
+  #composer .editor__status { flex-wrap: wrap; }
+  #composer .editor__hint { display: inline; }
+  #composer .editor__workspace { padding: 16px 8px; }
+  #composer .editor__page { width: calc(100% - 8px); min-height: 480px; padding: 28px clamp(20px, 6vw, 40px); }
+}
+@media (max-width: 520px) {
+  #composer .editor__status { justify-content: flex-start; flex-wrap: wrap; gap: 4px 12px; }
+  #composer .editor__hint { display: inline; }
+  #composer .editor__workspace { padding: 12px 4px; }
+  #composer .editor__page { width: 100%; min-height: 440px; padding: 24px 20px; }
+}
 
 .admin { max-width: 900px; }
 

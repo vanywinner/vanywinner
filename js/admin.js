@@ -23,6 +23,140 @@
     const j = await gh("data/posts.json", { method: "PUT", body: JSON.stringify({ message, content: b64(JSON.stringify(data, null, 2)), sha, branch: cfg.branch }) });
     sha = j.content.sha; renderList();
   }
+  const inlineUploadAttempts = new Map();
+  let inlineImageCounter = 0;
+  let pendingNewArticleId = null;
+  function uniqueInlineImageId() {
+    inlineImageCounter += 1;
+    const crypto = window.crypto;
+    if (crypto && crypto.getRandomValues) {
+      return Array.from(crypto.getRandomValues(new Uint8Array(16)), (byte) => byte.toString(16).padStart(2, "0")).join("");
+    }
+    return `${Date.now().toString(36)}-${inlineImageCounter.toString(36)}-${Math.random().toString(36).slice(2)}`;
+  }
+  async function webpContent(file) {
+    if (!file || !/^image\/(?:jpeg|png|webp)$/i.test(file.type) || !file.size) {
+      throw new Error("An inline image is invalid. Choose a non-empty JPEG, PNG or WebP file.");
+    }
+    let bitmap, image, objectUrl;
+    try {
+      let source, width, height;
+      if (window.createImageBitmap) {
+        try {
+          bitmap = await window.createImageBitmap(file);
+          source = bitmap; width = bitmap.width; height = bitmap.height;
+        } catch {
+          bitmap = null;
+        }
+      }
+      if (!source) {
+        objectUrl = URL.createObjectURL(file);
+        image = await new Promise((resolve, reject) => {
+          const loaded = new Image();
+          loaded.onload = () => resolve(loaded);
+          loaded.onerror = () => reject(new Error("The selected inline image could not be decoded."));
+          loaded.src = objectUrl;
+        });
+        source = image; width = image.naturalWidth; height = image.naturalHeight;
+      }
+      if (!width || !height || !Number.isFinite(width) || !Number.isFinite(height)) {
+        throw new Error("The selected inline image has invalid dimensions.");
+      }
+      const scale = Math.min(1, 2000 / Math.max(width, height));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(width * scale));
+      canvas.height = Math.max(1, Math.round(height * scale));
+      const context = canvas.getContext("2d");
+      if (!context) throw new Error("Your browser could not prepare the inline image.");
+      context.drawImage(source, 0, 0, canvas.width, canvas.height);
+      const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/webp", 0.8));
+      if (!blob || !blob.size || blob.type !== "image/webp") {
+        throw new Error("Your browser could not convert this image to WebP.");
+      }
+      const dataUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(new Error("The optimized inline image could not be read."));
+        reader.readAsDataURL(blob);
+      });
+      const content = typeof dataUrl === "string" ? dataUrl.slice(dataUrl.indexOf(",") + 1) : "";
+      if (!content || !/^data:image\/webp;base64,/.test(dataUrl)) {
+        throw new Error("The optimized inline image was empty or had an invalid format.");
+      }
+      return content;
+    } finally {
+      if (bitmap) bitmap.close();
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    }
+  }
+  async function uploadInlineImage(articleId, pendingImage, index, total) {
+    const articleSegment = String(articleId);
+    if (!/^[A-Za-z0-9_-]+$/.test(articleSegment)) throw new Error("This story has an invalid ID for inline image storage.");
+    let attempt = inlineUploadAttempts.get(pendingImage.id);
+    if (!attempt) {
+      attempt = { content: await webpContent(pendingImage.file), path: "" };
+      inlineUploadAttempts.set(pendingImage.id, attempt);
+    }
+    if (!attempt.path) attempt.path = `images/inline/${articleSegment}/${uniqueInlineImageId()}.webp`;
+    say(`Optimizing and uploading inline image ${index} of ${total}...`);
+    try {
+      await gh(attempt.path, {
+        method: "PUT",
+        body: JSON.stringify({ message: "Add inline article image", content: attempt.content, branch: cfg.branch })
+      });
+    } catch (uploadError) {
+      try {
+        const existing = await gh(attempt.path);
+        if (typeof existing.content === "string" && existing.content.replace(/\s/g, "") === attempt.content) {
+          return attempt.path;
+        }
+        attempt.path = `images/inline/${articleSegment}/${uniqueInlineImageId()}.webp`;
+      } catch (verifyError) {
+        throw new Error(`Could not upload inline image ${index} of ${total}: ${uploadError.message}`);
+      }
+      try {
+        await gh(attempt.path, {
+          method: "PUT",
+          body: JSON.stringify({ message: "Add inline article image", content: attempt.content, branch: cfg.branch })
+        });
+      } catch (retryError) {
+        throw new Error(`Could not upload inline image ${index} of ${total}: ${retryError.message}`);
+      }
+    }
+    return attempt.path;
+  }
+  async function uploadPendingImages(articleId) {
+    const pending = ed.getPendingImages();
+    for (let i = 0; i < pending.length; i += 1) {
+      const image = pending[i], path = await uploadInlineImage(articleId, image, i + 1, pending.length);
+      ed.replacePendingImages({ [image.id]: path });
+      inlineUploadAttempts.delete(image.id);
+    }
+  }
+  function keepInlineImagesInTextBlocks() {
+    const editor = ed.editor;
+    const textBlocks = Array.from(editor.querySelectorAll("p, h2, h3, h4, blockquote, li"))
+      .filter((block) => block.textContent.trim());
+    const emptyParagraphs = new Set();
+    const insertionPoints = new Map();
+    editor.querySelectorAll('img[src^="images/inline/"]').forEach((image) => {
+      const parentBlock = image.closest("p, h2, h3, h4, blockquote, li");
+      if (parentBlock && parentBlock.textContent.trim()) return;
+      if (parentBlock && parentBlock.tagName === "P") emptyParagraphs.add(parentBlock);
+      const followingBlock = textBlocks.find((block) => image.compareDocumentPosition(block) & Node.DOCUMENT_POSITION_FOLLOWING);
+      const previousBlock = textBlocks.slice().reverse().find((block) => block.compareDocumentPosition(image) & Node.DOCUMENT_POSITION_FOLLOWING);
+      const target = followingBlock || previousBlock;
+      if (target) {
+        if (target === followingBlock) {
+          if (!insertionPoints.has(target)) insertionPoints.set(target, target.firstChild);
+          target.insertBefore(image, insertionPoints.get(target));
+        } else target.appendChild(image);
+      }
+    });
+    emptyParagraphs.forEach((paragraph) => {
+      if (!paragraph.textContent.trim() && !paragraph.querySelector("img")) paragraph.remove();
+    });
+  }
   function shrink(file) {
     return new Promise((res) => {
       const img = new Image();
@@ -106,7 +240,7 @@
       const when = x.submittedAt ? new Date(x.submittedAt).toLocaleString("en-KE", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }) : "";
       const acts = x.status === "pending" ? `<button class="btn btn--ghost" type="button" data-review="${esc(x.id)}">Review</button><button class="btn btn--ghost" type="button" data-reject="${esc(x.id)}">Reject</button>` : `<button class="btn btn--ghost" type="button" data-delete-sub="${esc(x.id)}">Delete</button>`;
       return `<li><div class="subs-item"><div class="subs-item__top">${tag}<span class="subs-item__title">${esc(x.title)}</span></div><div class="subs-item__meta">By ${esc(x.author)}${x.topic ? " | " + esc(x.topic) : ""} | ${x.words || "?"} words | ${when}</div><div class="subs-item__actions">${acts}</div></div></li>`;
-    }).join("") : '<li class="subs-empty">No submissions yet. They appear here when someone sends an article from the Write for us page.</li>';
+    }).join("") : '<li class="subs-empty">No submissions yet. They appear here when someone sends an article from the Write with us page.</li>';
   }
   async function markSubmission(x, status, extra = {}) {
     const rec = Object.assign({}, x, extra, { status, reviewedAt: new Date().toISOString() }); delete rec._sha; delete rec._path;
@@ -219,6 +353,14 @@
     $("post-btn").disabled = true; say(editingId ? "Saving changes..." : "Publishing...");
     try {
       await load();
+      const articleId = type === "story" ? (editingId || (pendingNewArticleId || (pendingNewArticleId = String(Date.now())))) : null;
+      if (type === "story" && editingId && !data.articles.some((article) => article.id === editingId)) {
+        throw new Error("This story no longer exists. Cancel the edit and refresh.");
+      }
+      if (type === "story" && ed.getPendingImages().length) {
+        await uploadPendingImages(articleId);
+      }
+      if (type === "story") keepInlineImagesInTextBlocks();
       const body = type === "story" ? getBody() : "";
       if (type === "story" && !plainOf(body)) throw new Error("Write the story text before posting.");
       const summary = type === "story" ? ($("post-summary").value.trim() || summaryOf(body)) : "";
@@ -233,7 +375,7 @@
         say("Saved. The live site updates in a minute or two.");
         $("post-btn").disabled = false; return;
       }
-      const when = new Date().toLocaleString("en-KE", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }), id = String(Date.now());
+      const when = new Date().toLocaleString("en-KE", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }), id = type === "story" ? articleId : String(Date.now());
       if (type === "breaking") { data.breaking = [title, ...data.breaking].slice(0, 8); }
       else if (type === "video") {
         const yt = ytId($("post-video-url").value);
@@ -245,6 +387,7 @@
         data.articles.unshift(Object.assign({ id, slug: uniqueSlug(title), category: $("post-category").value, title, summary, body, format: "html", author: $("post-author").value.trim() || "Newsroom", time: when, date: new Date().toISOString(), image }, reviewing ? { guest: true, topic: reviewing.topic || "", submissionId: reviewing.id } : {}));
       }
       await save("Post: " + title);
+      if (type === "story") pendingNewArticleId = null;
       if (reviewing) {
         const art = data.articles[0], sub = reviewing;
         try { await markSubmission(sub, "published", { publishedSlug: art.slug, publishedAt: new Date().toISOString() }); renderSubs(); }

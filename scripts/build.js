@@ -1,9 +1,10 @@
 /* Generates every public page from data/posts.json:
-     index.html (home, with the News stories below the top stories), business.html, sports.html, videos.html, about.html, contact.html,
-     stories/TITLE-SLUG.html (one page per story, named after its title) and sitemap.xml.
+     index.html (home, with the News stories below the top stories), clean directory URLs for sections and stories,
+     legacy .html redirects and sitemap.xml.
    Site switches (breaking bar on/off, election countdown) come from data/settings.json and are changed only from the admin page.
    Runs automatically on GitHub after every post or edit. Run locally with: node scripts/build.js */
 const fs = require("fs");
+const path = require("path");
 const SITE = "https://vanywinner.co.ke";
 const PHONE_SHOW = "+254 715 672 799", PHONE_TEL = "+254715672799", WHATSAPP = "https://wa.me/254715672799";
 /* stop early, with a clear message, if a git merge left conflict markers in the data files */
@@ -40,7 +41,8 @@ function assignSlugs() {
   if (changed) fs.writeFileSync("data/posts.json", JSON.stringify(data, null, 2));
 }
 assignSlugs();
-const storyFile = (a) => `stories/${a.slug}.html`;
+const storyRoute = (a) => `stories/${a.slug}/`;
+const storyFile = (a) => `stories/${a.slug}/index.html`;
 
 /* ---------- rich text: keeps a safe set of formatting tags and drops everything else ---------- */
 const ALLOWED = new Set(["p", "br", "strong", "b", "em", "i", "u", "s", "strike", "h2", "h3", "h4", "ul", "ol", "li", "blockquote", "a", "span", "hr", "sub", "sup"]);
@@ -56,7 +58,73 @@ function safeStyle(tag, style) {
   }
   return out.join(";");
 }
-function sanitizeHtml(html) {
+const INLINE_IMAGE_PATH = /^images\/inline\/[A-Za-z0-9_-]+\/[A-Za-z0-9_-]+\.webp$/;
+const inlineImageVariants = new Map();
+const invalidInlineImages = new Set();
+const warnedInlineImages = new Set();
+function warnInlineImage(src) {
+  const value = String(src || "");
+  if (warnedInlineImages.has(value)) return;
+  warnedInlineImages.add(value);
+  console.warn(`WARNING: Removed unsafe, missing, or invalid inline image reference: ${JSON.stringify(value)}`);
+}
+function decodeHtmlAttribute(value) {
+  const named = { amp: "&", quot: '"', apos: "'", lt: "<", gt: ">" };
+  return String(value || "").replace(/&(#x[0-9a-f]+|#[0-9]+|amp|quot|apos|lt|gt);/gi, (entity, code) => {
+    if (code[0] !== "#") return named[code.toLowerCase()] || entity;
+    const number = code[1].toLowerCase() === "x" ? parseInt(code.slice(2), 16) : parseInt(code.slice(1), 10);
+    return Number.isFinite(number) && number > 0 && number <= 0x10ffff ? String.fromCodePoint(number) : entity;
+  });
+}
+function parseAttributes(source) {
+  const attrs = {};
+  String(source || "").replace(/([a-zA-Z-]+)\s*=\s*("([^"]*)"|'([^']*)'|([^\s"'>]+))/g, (_, key, __, quoted, singleQuoted, unquoted) => {
+    attrs[key.toLowerCase()] = quoted !== undefined ? quoted : singleQuoted !== undefined ? singleQuoted : unquoted;
+    return "";
+  });
+  return attrs;
+}
+function isWebpFile(file) {
+  let fd;
+  try {
+    const header = Buffer.alloc(12);
+    fd = fs.openSync(file, "r");
+    if (fs.readSync(fd, header, 0, header.length, 0) !== header.length) return false;
+    if (header.toString("ascii", 0, 4) !== "RIFF" || header.toString("ascii", 8, 12) !== "WEBP") return false;
+    const size = fs.fstatSync(fd).size, riffSize = header.readUInt32LE(4);
+    if (size < 20 || riffSize < 12 || riffSize + 8 > size) return false;
+    const chunk = Buffer.alloc(8);
+    if (fs.readSync(fd, chunk, 0, chunk.length, 12) !== chunk.length) return false;
+    const chunkType = chunk.toString("ascii", 0, 4), chunkSize = chunk.readUInt32LE(4);
+    return ["VP8 ", "VP8L", "VP8X"].includes(chunkType) && chunkSize > 0 && chunkSize <= riffSize - 12;
+  } catch (e) {
+    return false;
+  } finally {
+    if (fd !== undefined) try { fs.closeSync(fd); } catch (e) {}
+  }
+}
+function managedInlineImage(src) {
+  if (!INLINE_IMAGE_PATH.test(String(src || ""))) return null;
+  const file = path.resolve(src);
+  const inlineRoot = path.resolve("images/inline");
+  if (!file.startsWith(inlineRoot + path.sep)) return null;
+  try {
+    for (const [candidate, expectedType] of [
+      [path.resolve("images"), "directory"],
+      [inlineRoot, "directory"],
+      [path.resolve("images/inline", String(src).split("/")[2]), "directory"],
+      [file, "file"]
+    ]) {
+      const stat = fs.lstatSync(candidate);
+      if (stat.isSymbolicLink() || (expectedType === "directory" ? !stat.isDirectory() : !stat.isFile())) return null;
+    }
+    if (!isWebpFile(file)) return null;
+    return file;
+  } catch (e) {
+    return null;
+  }
+}
+function sanitizeHtml(html, root = "") {
   let src = String(html || "").replace(/<!--[\s\S]*?-->/g, "").replace(/<(script|style|iframe|object|embed|svg|math|noscript|template)\b[\s\S]*?<\/\1\s*>/gi, "");
   const out = [], stack = [];
   const re = /<(\/?)([a-zA-Z][a-zA-Z0-9]*)((?:\s+[^<>]*?)?)\s*(\/?)>|([^<]+)|(<)/g;
@@ -68,6 +136,22 @@ function sanitizeHtml(html) {
     if (tag === "div") tag = "p";
     if (tag === "font") tag = "span";
     if (tag === "b") tag = "strong"; if (tag === "i") tag = "em"; if (tag === "strike") tag = "s";
+    if (tag === "img") {
+      if (closing) continue;
+      const attrs = parseAttributes(m[3]);
+      const imagePath = String(attrs.src || "").trim();
+      if (!managedInlineImage(imagePath) || invalidInlineImages.has(imagePath)) {
+        warnInlineImage(imagePath);
+        continue;
+      }
+      const info = inlineImageVariants.get(imagePath) || {};
+      const srcset = info.srcset ? ` srcset="${esc(info.srcset.map((entry) => `${root}${entry.path} ${entry.width}w`).join(", "))}"` : "";
+      const sizes = info.srcset ? ' sizes="(max-width: 800px) 100vw, 800px"' : "";
+      const dimensions = info.width && info.height ? ` width="${info.width}" height="${info.height}"` : "";
+      const title = attrs.title ? ` title="${esc(decodeHtmlAttribute(attrs.title))}"` : "";
+      out.push(`<img src="${esc(root + imagePath)}"${srcset}${sizes} alt="${esc(decodeHtmlAttribute(attrs.alt))}"${title}${dimensions} loading="lazy" decoding="async">`);
+      continue;
+    }
     if (!ALLOWED.has(tag)) continue;
     if (closing) {
       const i = stack.lastIndexOf(tag);
@@ -77,7 +161,7 @@ function sanitizeHtml(html) {
     }
     if (/^(p|h2|h3|h4|ul|ol|blockquote|hr)$/.test(tag) && stack.includes("p")) { while (stack.length) { const t = stack.pop(); out.push(`</${t}>`); if (t === "p") break; } }
     if (tag === "br" || tag === "hr") { out.push(`<${tag}>`); continue; }
-    const attrs = {}; String(m[3] || "").replace(/([a-zA-Z-]+)\s*=\s*("([^"]*)"|'([^']*)'|([^\s"'>]+))/g, (_, k, __, a, b, c) => { attrs[k.toLowerCase()] = a !== undefined ? a : b !== undefined ? b : c; return ""; });
+    const attrs = parseAttributes(m[3]);
     let extra = "";
     if (tag === "a") {
       const h = String(attrs.href || "").trim().replace(/&amp;/g, "&");
@@ -94,17 +178,17 @@ function sanitizeHtml(html) {
 }
 const plainText = (html) => String(html || "").replace(/<(br|\/p|\/h[2-4]|\/li|\/blockquote)\s*\/?>/gi, " ").replace(/<[^>]+>/g, "").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/\s+/g, " ").trim();
 const isHtmlBody = (a) => a.format === "html" || /^\s*<(p|h[2-4]|ul|ol|blockquote|div)\b/i.test(a.body || "");
-const bodyHtml = (a) => isHtmlBody(a) ? sanitizeHtml(a.body) : (a.body || a.summary || "").split(/\n\s*\n/).map((p) => `<p>${esc(p)}</p>`).join("");
+const bodyHtml = (a, root = "") => isHtmlBody(a) ? sanitizeHtml(a.body, root) : (a.body || a.summary || "").split(/\n\s*\n/).map((p) => `<p>${esc(p)}</p>`).join("");
 const bodyPlain = (a) => isHtmlBody(a) ? plainText(a.body) : String(a.body || "");
 
 const isRemote = (u) => /^(https?:)?\/\//.test(u);
 
 /* each menu item is its own page; stories are listed on the page of their category */
-const CATEGORIES = [["News", "news.html"], ["Business", "business.html"], ["Sports", "sports.html"], ["Opinion", "opinion.html"]];
+const CATEGORIES = [["News", ""], ["Business", "business/"], ["Sports", "sports/"], ["Opinion", "opinion/"]];
 /* News has no page of its own: its stories are listed on the home page, below the top stories */
 const PAGE_CATS = CATEGORIES.filter((c) => c[0] !== "News");
-const catFile = (cat) => cat === "News" ? "index.html#news" : (PAGE_CATS.find((c) => c[0] === cat) || [])[1];
-const NAV = [["Home", "index.html"], ["Business", "business.html"], ["Sports", "sports.html"], ["Opinion", "opinion.html"], ["Videos", "videos.html"], ["About", "about.html"], ["Contact", "contact.html"]];
+const catFile = (cat) => cat === "News" ? "#news" : (PAGE_CATS.find((c) => c[0] === cat) || [])[1];
+const NAV = [["Home", ""], ["Business", "business/"], ["Sports", "sports/"], ["Opinion", "opinion/"], ["Videos", "videos/"], ["About", "about/"], ["Contact", "contact/"]];
 const FONTS = "https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap";
 
 /* Reads width/height from a JPEG or PNG so story images can reserve their space (prevents layout shift). */
@@ -128,6 +212,60 @@ function imageSize(file) {
 /* ---------- speed: small WebP thumbnails for cards (needs the optional "sharp" package) ---------- */
 let sharp = null;
 try { sharp = require("sharp"); } catch (e) { console.log("sharp not installed: skipping thumbnails (pages still work, using original images)"); }
+async function prepareInlineImages() {
+  inlineImageVariants.clear();
+  invalidInlineImages.clear();
+  const paths = new Set();
+  for (const article of data.articles) {
+    String(article.body || "").replace(/<img\b([^>]*)>/gi, (_, source) => {
+      const imagePath = String(parseAttributes(source).src || "").trim();
+      if (managedInlineImage(imagePath)) paths.add(imagePath);
+      return "";
+    });
+  }
+  for (const imagePath of paths) {
+    const file = managedInlineImage(imagePath);
+    if (!file) continue;
+    const info = {};
+    if (sharp) {
+      try {
+        const metadata = await sharp(file).metadata();
+        if (metadata.format !== "webp" || !Number.isSafeInteger(metadata.width) || !Number.isSafeInteger(metadata.height) || metadata.width < 1 || metadata.height < 1) {
+          console.warn(`WARNING: Invalid inline WebP image metadata: ${imagePath}`);
+          invalidInlineImages.add(imagePath);
+          continue;
+        }
+        info.width = metadata.width;
+        info.height = metadata.height;
+        info.srcset = [];
+        for (const width of [480, 800, 1200, 1600]) {
+          if (width >= metadata.width) continue;
+          const variantPath = imagePath.replace(/\.webp$/, `-${width}.webp`);
+          const variantFile = path.resolve(variantPath);
+          if (fs.existsSync(variantFile)) {
+            try {
+              if (!fs.lstatSync(variantFile).isFile() || !isWebpFile(variantFile)) continue;
+            } catch (e) { continue; }
+          } else {
+            try {
+              await sharp(file).resize({ width, withoutEnlargement: true }).webp({ quality: 80 }).toFile(variantFile);
+            } catch (e) {
+              console.warn(`WARNING: Could not create ${width}px inline image variant for ${imagePath}: ${e.message}`);
+              continue;
+            }
+          }
+          info.srcset.push({ path: variantPath, width });
+        }
+        info.srcset.push({ path: imagePath, width: metadata.width });
+      } catch (e) {
+        console.warn(`WARNING: Could not inspect inline image ${imagePath}; skipping it: ${e.message}`);
+        invalidInlineImages.add(imagePath);
+        continue;
+      }
+    }
+    inlineImageVariants.set(imagePath, info);
+  }
+}
 async function makeResized(dir, width, quality) {
   fs.mkdirSync("images/" + dir, { recursive: true });
   for (const a of data.articles) {
@@ -140,7 +278,7 @@ async function makeResized(dir, width, quality) {
 async function makeThumbs() { if (!sharp) return; await makeResized("thumbs", 560, 72); await makeResized("hero", 900, 70); }
 
 /* ---------- card pieces (same markup as before) ---------- */
-const hrefOf = (a, root) => a.link || (a.slug ? root + storyFile(a) : a.id ? root + "stories/" + encodeURIComponent(a.id) + ".html" : "#");
+const hrefOf = (a, root) => a.link || (a.slug ? root + storyRoute(a) : a.id ? root + "stories/" + encodeURIComponent(a.id) + "/" : "#");
 const swapDir = (img, dir) => img.replace(/^images\//, `images/${dir}/`).replace(/\.[a-z0-9]+$/i, ".webp");
 function thumbHtml(a, root) {
   if (!a.image) return `<div class="thumb thumb--${esc(String(a.category).toLowerCase())}"></div>`;
@@ -206,10 +344,10 @@ function headerHtml(root, active) {
   const seen = new Set();
   const links = NAV.map(([label, file]) => {
     const on = file === active && !seen.has(file); seen.add(file);
-    return `<a class="main-nav__link${on ? " is-active" : ""}" href="${root}${file}"${on ? ' aria-current="page"' : ""}>${label}</a>`;
+    return `<a class="main-nav__link${on ? " is-active" : ""}" href="${root}${file || ""}"${on ? ' aria-current="page"' : ""}>${label}</a>`;
   }).join("\n    ");
   return `<header id="site-header" class="site-header">
-  <a class="brand" href="${root}index.html" aria-label="Vanywinner home">
+  <a class="brand" href="${root}" aria-label="Vanywinner home">
     <img class="brand__logo" src="${root}favicon.svg" alt="" width="40" height="40">
     <span class="brand__name">Vanywinner<small>News</small></span>
   </a>
@@ -247,7 +385,7 @@ function electionStrip() {
 const footerHtml = (root = "") => `<footer id="site-footer" class="site-footer">
   <div class="site-footer__inner">
     <p class="site-footer__copy">&copy; <span id="footer-year">${new Date().getFullYear()}</span> Vanywinner News &middot; Nairobi, Kenya &middot; vanywinner.co.ke</p>
-    <nav class="site-footer__legal" aria-label="Legal"><a href="${root}privacy.html">Privacy Policy</a><a href="${root}terms.html">Terms and Conditions</a><a href="${root}cookies.html">Cookie Policy</a><a href="${root}write-for-us.html">Write for us</a><button type="button" class="site-footer__cookie" data-cookie-settings>Cookie settings</button></nav>
+    <nav class="site-footer__legal" aria-label="Legal"><a href="${root}privacy/">Privacy Policy</a><a href="${root}terms/">Terms and Conditions</a><a href="${root}cookies/">Cookie Policy</a><a href="${root}write-for-us/">Write with us</a><button type="button" class="site-footer__cookie" data-cookie-settings>Cookie settings</button></nav>
     <p class="site-footer__dev">Developed by <a href="https://wa.me/254715672799" target="_blank" rel="noopener noreferrer">Vanywinner Enterprises</a></p>
   </div>
 </footer>`;
@@ -260,7 +398,8 @@ const GA = `<!-- Google Analytics is loaded by js/consent.js only after the visi
 function minCss() {
   return fs.readFileSync("css/style.css", "utf8").replace(/\/\*[\s\S]*?\*\//g, "").replace(/\s+/g, " ").replace(/\s*([{};:,>])\s*/g, "$1").replace(/;}/g, "}");
 }
-const CSS_V = "8";
+const CSS_V = "10";
+const SUBMIT_JS_V = "10";
 const OG_DEFAULT = `${SITE}/images/og-default.jpg`;
 const isoFromId = (id) => /^\d{13}$/.test(String(id)) ? new Date(Number(id)).toISOString() : undefined;
 const GENERIC_AUTHOR = /desk|newsroom|vanywinner|editorial|staff/i;
@@ -273,7 +412,9 @@ function layout(o) {
   const ogImg = `\n<meta property="og:image" content="${shareImg}">` + (shareImg === OG_DEFAULT ? `\n<meta property="og:image:width" content="1200">\n<meta property="og:image:height" content="630">` : "") + `\n<meta name="twitter:card" content="summary_large_image">`
     + ((o.head || "").includes('name="robots"') ? "" : `\n<meta name="robots" content="index, follow, max-image-preview:large">`);
   const css = o.inlineCss ? `<style>${minCss()}</style>` : `<link rel="stylesheet" href="${root}css/style.css?v=${CSS_V}">`;
-  const scripts = [`${root}js/site.js?v=${CSS_V}`, `${root}js/consent.js?v=${CSS_V}`].concat(o.scripts || []).map((s) => `<script src="${s}" defer></script>`).join("\n");
+  const scripts = [`${root}js/site.js?v=${CSS_V}`, `${root}js/consent.js?v=${CSS_V}`]
+    .concat((o.scripts || []).map((s) => root + s))
+    .map((s) => `<script src="${s}" defer></script>`).join("\n");
   const bar = o.story ? "" : breakingBar();
   const strip = electionStrip();
   return `<!DOCTYPE html>
@@ -311,7 +452,22 @@ ${scripts}
 </html>
 `;
 }
-const writePage = (file, html) => { fs.writeFileSync(file, html); };
+const writePage = (file, html) => {
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, html.replace(/[ \t]+(?=\r?$)/gm, ""));
+};
+
+function legacyRedirect(file, route, title) {
+  const destination = route ? `/${route}` : "/";
+  const canonicalDestination = route && route.startsWith("#") ? "/" : destination;
+  const url = `${SITE}${canonicalDestination}`;
+  writePage(file, `<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>${esc(title)} | Vanywinner News</title>
+<meta name="robots" content="noindex, follow"><link rel="canonical" href="${url}">
+<meta http-equiv="refresh" content="0; url=${destination}"><script>location.replace(${JSON.stringify(destination)});</script></head>
+<body><p>This page has moved. <a href="${destination}">Continue to ${esc(title)}</a>.</p></body></html>
+`);
+}
 
 /* ---------- the pages ---------- */
 function homePage() {
@@ -335,7 +491,7 @@ function homePage() {
   </section>${newsHtml}`
     : `<p class="empty-note">No stories yet. Post the first one from the admin page.</p>`;
   writePage("index.html", layout({
-    path: "", active: "index.html", inlineCss: true, scripts: ["js/main.js?v=" + CSS_V],
+    path: "", active: "", inlineCss: true, scripts: ["js/main.js?v=" + CSS_V],
     title: "Vanywinner News: Kenya, Africa and the world",
     desc: "Breaking news, business, sport and video from Kenya and beyond.",
     main: `<main id="main-content" class="page">\n  ${body}\n</main>`
@@ -345,35 +501,32 @@ function homePage() {
 function sectionPage([cat, file]) {
   const list = data.articles.filter((a) => a.category === cat);
   const count = `${list.length} ${list.length === 1 ? "story" : "stories"}`;
-  writePage(file, layout({
-    path: file, active: file,
+  const root = "../";
+  writePage(`${file}index.html`, layout({
+    root, path: file, active: file,
     title: `${cat} | Vanywinner News`,
     desc: `${cat} stories from Vanywinner News: Kenya, Africa and the world.`,
     main: `<main id="main-content" class="page">
   <section id="${cat.toLowerCase()}" class="category-section">
     <h1 class="section-title">${cat}</h1>
     <p class="section-count">${count}</p>
-    ${cat === "Opinion" ? `<p class="section-cta">Have a view on a trending topic? <a href="write-for-us.html">Write for us</a> and share your opinion.</p>` : ""}
-    ${list.length ? `<div class="card-grid">${list.map((a) => storyCard(a, "")).join("")}</div>` : `<p class="empty-note">No ${cat} stories yet. Check back soon.</p>`}
+    ${cat === "Opinion" ? `<p class="section-cta">Have a view on a trending topic? <a href="${root}write-for-us/">Write with us</a> and share your opinion.</p>` : ""}
+    ${list.length ? `<div class="card-grid">${list.map((a) => storyCard(a, root)).join("")}</div>` : `<p class="empty-note">No ${cat} stories yet. Check back soon.</p>`}
   </section>
 </main>`
   }));
+  legacyRedirect(`${file.slice(0, -1)}.html`, file, cat);
   return list.length;
 }
 
 /* old /news.html links keep working: they go to the News section on the home page */
 function newsRedirect() {
-  fs.writeFileSync("news.html", `<!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8"><title>News | Vanywinner News</title>
-<meta name="robots" content="noindex"><link rel="canonical" href="${SITE}/">
-<meta http-equiv="refresh" content="0; url=index.html#news"><script>location.replace("index.html#news");</script></head>
-<body><p><a href="index.html#news">Go to the News section</a></p></body></html>
-`);
+  legacyRedirect("news.html", "#news", "News");
 }
 
 function videosPage() {
-  writePage("videos.html", layout({
-    path: "videos.html", active: "videos.html", scripts: [],
+  writePage("videos/index.html", layout({
+    root: "../", path: "videos/", active: "videos/", scripts: [],
     title: "Videos | Vanywinner News",
     desc: "Watch news videos, interviews and bulletins from Vanywinner News.",
     main: `<main id="main-content" class="page page--videos">
@@ -393,11 +546,12 @@ function videosPage() {
 
 `
   }));
+  legacyRedirect("videos.html", "videos/", "Videos");
 }
 
 function contactPage() {
-  writePage("contact.html", layout({
-    path: "contact.html", active: "contact.html", scripts: ["js/contact.js?v=3"],
+  writePage("contact/index.html", layout({
+    root: "../", path: "contact/", active: "contact/", scripts: ["js/contact.js?v=3"],
     title: "Contact us | Vanywinner News",
     desc: "Call or WhatsApp Vanywinner News on " + PHONE_SHOW + ", or send a message to the newsroom in Nairobi, Kenya.",
     main: `<main id="main-content" class="page">
@@ -427,6 +581,7 @@ function contactPage() {
   </section>
 </main>`
   }));
+  legacyRedirect("contact.html", "contact/", "Contact us");
 }
 
 function aboutPage() {
@@ -437,8 +592,8 @@ function aboutPage() {
     founder: { "@type": "Person", name: "Okhala Winslaus Ondwasi", email: "winslausokhala@gmail.com", url: "https://winslausokhala.github.io",
       sameAs: ["https://winslausokhala.github.io", "https://www.linkedin.com/in/winslaus-okhala-861024409"] }
   }).replace(/</g, "\\u003c")}\n</script>`;
-  writePage("about.html", layout({
-    path: "about.html", active: "about.html", head: ld,
+  writePage("about/index.html", layout({
+    root: "../", path: "about/", active: "about/", head: ld,
     title: "About Vanywinner News | Nairobi, Kenya",
     desc: "Vanywinner News is an independent Kenyan news site covering news, business and sports. Meet the founder, Okhala Winslaus Ondwasi, and get in touch.",
     main: `<main id="about-page" class="about">
@@ -482,13 +637,16 @@ function aboutPage() {
   </section>
 </main>`
   }));
+  legacyRedirect("about.html", "about/", "About Vanywinner News");
 }
 
 function legalPage(file, title, lead, desc) {
   const body = fs.readFileSync(`content/${file}`, "utf8");
-  writePage(file, layout({
-    path: file, active: "", title: `${title} | Vanywinner News`, desc,
-    main: `<main id="${file.replace(".html", "")}-page" class="about">
+  const name = file.replace(/\.html$/, "");
+  const route = `${name}/`;
+  writePage(`${route}index.html`, layout({
+    root: "../", path: route, active: "", title: `${title} | Vanywinner News`, desc,
+    main: `<main id="${name}-page" class="about">
   <section class="about-hero">
     <h1 class="about-hero__title">${title}</h1>
     <p class="about-hero__lead">${lead}</p>
@@ -498,6 +656,7 @@ ${body}
   </section>
 </main>`
   }));
+  legacyRedirect(file, route, title);
 }
 
 function submitPage() {
@@ -505,15 +664,15 @@ function submitPage() {
   const body = fs.readFileSync("content/write-for-us.html", "utf8")
     .replace(/\{\{ENDPOINT\}\}/g, esc(settings.submitEndpoint || ""))
     .replace(/\{\{TURNSTILE\}\}/g, key ? `<div class="cf-turnstile" data-sitekey="${esc(key)}"></div>` : "");
-  writePage("write-for-us.html", layout({
-    path: "write-for-us.html", active: "opinion.html",
-    title: "Write for us: share your opinion | Vanywinner News",
+  writePage("write-for-us/index.html", layout({
+    root: "../", path: "write-for-us/", active: "opinion/",
+    title: "Write with us: share your opinion | Vanywinner News",
     desc: "Share your opinion on trending topics with Vanywinner News. Write your article online and send it to our editor for review.",
     head: key ? '\n<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>' : "",
-    scripts: [`js/editor.js?v=${CSS_V}`, `js/submit.js?v=${CSS_V}`],
+    scripts: [`js/editor.js?v=${CSS_V}`, `js/submit.js?v=${SUBMIT_JS_V}`],
     main: `<main id="write-for-us-page" class="about">
   <section id="write-for-us-hero" class="about-hero">
-    <h1 class="about-hero__title">Write for us</h1>
+    <h1 class="about-hero__title">Write with us</h1>
     <p class="about-hero__lead">Have a view on a trending topic? Write it here and send it to our editor.</p>
   </section>
   <section class="about-card legal">
@@ -521,14 +680,15 @@ ${body}
   </section>
 </main>`
   }));
+  legacyRedirect("write-for-us.html", "write-for-us/", "Write with us");
+  legacyRedirect("write-with-us.html", "write-for-us/", "Write with us");
 }
 
 function storyPages(urls, today) {
-  fs.rmSync("stories", { recursive: true, force: true });
-  fs.mkdirSync("stories");
   for (const a of data.articles) {
     const file = storyFile(a);
-    const url = `${SITE}/${file}`;
+    const route = storyRoute(a);
+    const url = `${SITE}/${route}`;
     const desc = (a.summary || bodyPlain(a)).replace(/\s+/g, " ").slice(0, 160);
     const img = a.image ? (isRemote(a.image) ? a.image : `${SITE}/${a.image}`) : OG_DEFAULT;
     const dim = a.image && !isRemote(a.image) ? imageSize(a.image) : null;
@@ -553,33 +713,34 @@ function storyPages(urls, today) {
     }).replace(/</g, "\\u003c");
     const cf = catFile(a.category);
     writePage(file, layout({
-      root: "../", path: file, story: true, active: cf || "", ogType: "article", ogImage: img,
+      root: "../../", path: route, story: true, active: cf || "", ogType: "article", ogImage: img,
       title: `${a.title} | Vanywinner News`, ogTitle: a.title, desc,
       head: `\n<script type="application/ld+json">${ld}</script>\n<script type="application/ld+json">${crumbs}</script>`,
       main: `<main id="story-page" class="story-page">
-  <a class="story-page__back" href="../index.html">Back to home</a>
-  <h1 class="story-page__title">${esc(a.title)}</h1>${cf ? `<a class="chip" href="../${cf}">${esc(a.category)}</a>` : `<span class="chip">${esc(a.category)}</span>`}
+        <a class="story-page__back" href="../../">Back to home</a>
+        <h1 class="story-page__title">${esc(a.title)}</h1>${cf ? `<a class="chip" href="../../${cf}">${esc(a.category)}</a>` : `<span class="chip">${esc(a.category)}</span>`}
   <p class="story-page__meta">By ${esc(a.author)}, ${esc(a.time)}</p>
-  ${a.image ? `<img class="story-page__image" src="${isRemote(a.image) ? esc(a.image) : "../" + esc(a.image)}" alt="${esc(a.title)}"${dimAttrs} decoding="async">` : ""}
-  <div class="story-page__body">${bodyHtml(a)}</div>${a.category === "Opinion" ? `
-  <aside class="story-page__note"><strong>Opinion.</strong> The views expressed are the author's own and do not necessarily reflect those of Vanywinner News. <a href="../write-for-us.html">Write for us</a> to share yours.</aside>` : ""}
+        ${a.image ? `<img class="story-page__image" src="${isRemote(a.image) ? esc(a.image) : "../../" + esc(a.image)}" alt="${esc(a.title)}"${dimAttrs} decoding="async">` : ""}
+  <div class="story-page__body">${bodyHtml(a, "../../")}</div>${a.category === "Opinion" ? `
+        <aside class="story-page__note"><strong>Opinion.</strong> The views expressed are the author's own and do not necessarily reflect those of Vanywinner News. <a href="../../write-for-us/">Write with us</a> to share yours.</aside>` : ""}
 </main>`
     }));
     urls.push([url, (a.updated || published || today).slice(0, 10)]);
-    /* the old numeric address keeps working: it forwards to the title address */
+    legacyRedirect(`stories/${a.slug}.html`, route, a.title);
+    /* Keep historical numeric article links working and point them at the clean route. */
     if (a.id && String(a.id) !== a.slug) {
-      writePage(`stories/${a.id}.html`, `<!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8"><title>${esc(a.title)} | Vanywinner News</title>
-<link rel="canonical" href="${url}">
-<meta http-equiv="refresh" content="0; url=${a.slug}.html">
-<script>location.replace(${JSON.stringify(a.slug + ".html")});</script>
-</head><body><p>This story has moved. <a href="${a.slug}.html">Read: ${esc(a.title)}</a></p></body></html>
-`);
+      legacyRedirect(`stories/${a.id}.html`, route, a.title);
+    }
+    const numericId = String(a.id || "");
+    if (/^\d+$/.test(numericId) && numericId !== a.slug &&
+        !data.articles.some((other) => other !== a && other.slug === numericId)) {
+      legacyRedirect(`stories/${numericId}/index.html`, route, a.title);
     }
   }
 }
 
 async function main() {
+  await prepareInlineImages();
   await makeThumbs();
   await makeHeroInline();
   const today = new Date().toISOString().slice(0, 10);
@@ -588,16 +749,16 @@ async function main() {
   newsRedirect();
   const counts = PAGE_CATS.map((c) => { const n = sectionPage(c); urls.push([SITE + "/" + c[1], today]); return `${c[0]} ${n}`; });
   counts.unshift(`News ${data.articles.filter((a) => a.category === "News").length} (on home)`);
-  videosPage(); urls.push([SITE + "/videos.html", today]);
-  aboutPage(); urls.push([SITE + "/about.html", today]);
-  contactPage(); urls.push([SITE + "/contact.html", today]);
-  submitPage(); urls.push([SITE + "/write-for-us.html", today]);
+  videosPage(); urls.push([SITE + "/videos/", today]);
+  aboutPage(); urls.push([SITE + "/about/", today]);
+  contactPage(); urls.push([SITE + "/contact/", today]);
+  submitPage(); urls.push([SITE + "/write-for-us/", today]);
   legalPage("privacy.html", "Privacy Policy", "How Vanywinner News collects, uses and protects your information.", "How Vanywinner News collects, uses and protects your personal information, including cookies, analytics and advertising.");
-  urls.push([SITE + "/privacy.html", today]);
+  urls.push([SITE + "/privacy/", today]);
   legalPage("terms.html", "Terms and Conditions", "The rules for using Vanywinner News.", "The terms and conditions for using Vanywinner News, including content use, accuracy, advertising and complaints.");
-  urls.push([SITE + "/terms.html", today]);
+  urls.push([SITE + "/terms/", today]);
   legalPage("cookies.html", "Cookie Policy", "The cookies we use and how you can control them.", "The cookies and similar technologies used on Vanywinner News and how to manage your choices.");
-  urls.push([SITE + "/cookies.html", today]);
+  urls.push([SITE + "/cookies/", today]);
   storyPages(urls, today);
   const known = new Set(CATEGORIES.map((c) => c[0]));
   const lost = data.articles.filter((a) => !known.has(a.category));

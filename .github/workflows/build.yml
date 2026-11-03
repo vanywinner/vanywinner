@@ -1,7 +1,7 @@
 name: Build static pages
 on:
   push:
-    paths: ["data/posts.json", "data/settings.json", "scripts/build.js", "css/style.css", "content/**"]
+    paths: ["data/posts.json", "data/settings.json", "scripts/build.js", "css/style.css", "css/admin.css", "admin.html", "js/**", "content/**"]
   workflow_dispatch:
 permissions:
   contents: write

@@ -1,4 +1,4 @@
-/* "Write for us" page: the editor, checks, draft saving and sending the article for review. */
+/* "Write with us" page: the editor, checks, draft saving and sending the article for review. */
 (function () {
   const $ = (id) => document.getElementById(id);
   const form = $("submit-form"); if (!form) return;
@@ -21,7 +21,9 @@
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const title = $("sub-title").value.trim(), name = $("sub-name").value.trim(), email = $("sub-email").value.trim(), phone = $("sub-phone").value.trim();
-    const w = words();
+    let w;
+    try { w = words(); }
+    catch (err) { return say(err.message || "The article could not be checked. Please review it and try again.", true); }
     if (title.length < 8) return say("Please write a headline of at least 8 characters.", true);
     if (name.length < 2) return say("Please enter your name.", true);
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return say("That email address does not look right.", true);

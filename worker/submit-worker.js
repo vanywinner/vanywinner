@@ -1,5 +1,5 @@
 /* Vanywinner News: opinion submission receiver (Cloudflare Worker).
-   The public "Write for us" page posts an article here. The Worker checks it and saves it as a JSON file in a
+   The public "Write with us" page posts an article here. The Worker checks it and saves it as a JSON file in a
    PRIVATE GitHub repository, where the admin page lists it as "Pending review".
    Settings (Worker > Settings > Variables and Secrets):
      GITHUB_TOKEN     (secret)   fine-grained token, only for the submissions repository, Contents: Read and write

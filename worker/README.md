@@ -1,6 +1,6 @@
 # Opinion submissions: one-time setup
 
-The public **Write for us** page cannot save files in your repository by itself (visitors have no GitHub access, and
+The public **Write with us** page cannot save files in your repository by itself (visitors have no GitHub access, and
 your token must never be put on a public page). A small free **Cloudflare Worker** sits in the middle: it checks each
 article and saves it in a **private** GitHub repository, where your admin page lists it as "Pending review".
 
@@ -28,7 +28,7 @@ numbers and unreviewed articles, would be readable by everyone.
 
 ## 4. Tell the website about it
 1. Open `admin.html`, go to **Site settings**, paste the Worker address in **Submission address**, press **Save settings**.
-2. Wait a minute or two for the site to rebuild. The Write for us page then accepts articles.
+2. Wait a minute or two for the site to rebuild. The Write with us page then accepts articles.
 
 ## 5. Strongly recommended: bot protection (free)
 1. Cloudflare, **Turnstile**, Add widget, domain `vanywinner.co.ke`. Copy the **Site key** and **Secret key**.
@@ -38,7 +38,7 @@ numbers and unreviewed articles, would be readable by everyone.
    example 5 requests per 10 minutes per IP.
 
 ## 6. Test it
-1. Open `https://vanywinner.co.ke/write-for-us.html`, write at least 150 words and send.
+1. Open `https://vanywinner.co.ke/write-for-us/`, write at least 150 words and send.
 2. A new file appears in the private repository under `submissions/`.
 3. In `admin.html` the **Opinion submissions** box shows it as **Pending review**. Press **Review**, edit if you like,
    then **Publish opinion** (or **Reject**).

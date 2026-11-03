@@ -9,7 +9,7 @@
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap"></noscript>
 <link rel="stylesheet" href="css/style.css?v=8">
-<link rel="stylesheet" href="css/admin.css?v=7">
+<link rel="stylesheet" href="css/admin.css?v=9">
 </head>
 <body>
 <header id="site-header" class="site-header">
@@ -25,7 +25,7 @@
     <label class="field">Branch<input id="cfg-branch" value="main" required></label></div>
     <label class="field">Access token<input id="cfg-token" type="password" autocomplete="off" required></label>
     <label class="field">Private submissions repository (name only)<input id="cfg-subrepo" value="vanywinner-submissions"></label>
-    <p class="panel__hint">Opinion articles sent from the Write for us page are saved in this private repository. The token above must also have access to it.</p>
+    <p class="panel__hint">Opinion articles sent from the Write with us page are saved in this private repository. The token above must also have access to it.</p>
     <button class="btn" type="submit">Save and connect</button>
   </form>
 
@@ -41,7 +41,7 @@
 
   <section id="subs-panel" class="panel" hidden>
     <div class="subs-head"><h2 class="panel__title">Opinion submissions <span id="subs-count" class="badge" hidden></span></h2><button id="subs-refresh" class="btn btn--ghost" type="button">Refresh</button></div>
-    <p class="panel__hint">Articles sent from the Write for us page. Choose Review to open one in the editor below, then publish it or reject it.</p>
+    <p class="panel__hint">Articles sent from the Write with us page. Choose Review to open one in the editor below, then publish it or reject it.</p>
     <ul id="subs-list" class="subs-list"><li class="subs-empty">Loading...</li></ul>
     <p id="subs-status" class="status" role="status"></p>
   </section>
@@ -65,8 +65,10 @@
     </div>
     <div data-for="story">
       <div id="story-editor" class="editor">
-        <div id="editor-toolbar" class="editor__toolbar" role="toolbar" aria-label="Text formatting"></div>
-        <div id="post-body" class="editor__page is-empty" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Story text" data-placeholder="Start writing your story here. Select text to make it bold, italic, underlined, a heading or a link."></div>
+        <div id="editor-toolbar" class="editor__toolbar" role="toolbar" aria-label="Formatting ribbon: History, Paragraph, Text, Alignment, Lists, Insert, and Clear formatting"></div>
+        <div class="editor__workspace">
+          <div id="post-body" class="editor__page is-empty" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Story text" data-allow-inline-images="true" data-placeholder="Start writing your story here. Select text to make it bold, italic, underlined, a heading or a link."></div>
+        </div>
         <div class="editor__status"><span id="word-count">0 words</span><span class="editor__hint">Ctrl+B bold, Ctrl+I italic, Ctrl+U underline, Ctrl+Z undo</span></div>
       </div>
       <textarea id="post-summary" rows="2" class="composer__summary" placeholder="Short summary shown on the home page"></textarea>
@@ -87,7 +89,7 @@
       <label class="field">Countdown title<input id="set-label" placeholder="Kenya General Election"></label>
       <label class="field">Election date and time (East Africa Time)<input id="set-date" type="datetime-local"></label>
     </div>
-    <h3 class="panel__sub">Write for us page</h3>
+    <h3 class="panel__sub">Write with us page</h3>
     <label class="field">Submission address (your Cloudflare Worker link)<input id="set-endpoint" type="url" placeholder="https://vanywinner-submit.yourname.workers.dev"></label>
     <label class="field">Turnstile site key (optional, blocks bots)<input id="set-turnstile" placeholder="0x4AAAA..."></label>
     <div class="composer__foot"><p id="settings-status" class="status" role="status"></p><button id="settings-save" class="btn" type="button">Save settings</button></div>
@@ -105,7 +107,7 @@
   </div>
 </footer>
 <script>document.getElementById("footer-year").textContent=new Date().getFullYear();</script>
-<script src="js/editor.js?v=9"></script>
+<script src="js/editor.js?v=10"></script>
 <script src="js/admin.js?v=9"></script>
 </body>
 </html>
